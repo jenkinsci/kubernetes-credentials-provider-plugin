@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Secret
+metadata:
+# this is the jenkins id.
+  name: "another-test-file"
+  labels:
+# so we know what type it is.
+    "jenkins.io/credentials-type": "secretFile"
+  annotations: {
+# description - can not be a label as spaces are not allowed
+    "jenkins.io/credentials-description" : "secret file credential from Kubernetes",
+    # map the password field to pass
+    "jenkins.io/credentials-keybinding-filename" : "f",
+    # map the certificate field to cert
+    "jenkins.io/credentials-keybinding-data" : "stuff"
+  }
+type: Opaque
+data:
+# UTF-8 base64 encoded
+  f: bXlTZWNyZXQudHh0  # mySecret.txt
+# base64 encoded bytes
+  stuff: SGVsbG8gV29ybGQh # Hello World!

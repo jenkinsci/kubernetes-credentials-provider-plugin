@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Secret
+metadata:
+# this is the jenkins id.
+  name: "a-test-certificate"
+  labels:
+# so we know what type it is.
+    "jenkins.io/credentials-type": "certificate"
+  annotations: {
+# description - can not be a label as spaces are not allowed
+    "jenkins.io/credentials-description" : "certificate credential from Kubernetes"
+  }
+type: Opaque
+data:
+# UTF-8 base64 encoded
+  password: dGVzdFBhc3N3b3Jk
+# PKCS#12 base64 encoded bytes
