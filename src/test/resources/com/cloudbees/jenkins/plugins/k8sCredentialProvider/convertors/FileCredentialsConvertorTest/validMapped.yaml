@@ -9,9 +9,9 @@ metadata:
   annotations: {
 # description - can not be a label as spaces are not allowed
     "jenkins.io/credentials-description" : "secret file credential from Kubernetes",
-    # map the password field to pass
+    # map the filename field to f
     "jenkins.io/credentials-keybinding-filename" : "f",
-    # map the certificate field to cert
+    # map the data field to stuff
     "jenkins.io/credentials-keybinding-data" : "stuff"
   }
 type: Opaque
