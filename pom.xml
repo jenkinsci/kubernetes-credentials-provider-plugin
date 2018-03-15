@@ -33,7 +33,7 @@
   </parent>
 
   <groupId>com.cloudbees.jenkins.plugins.k8sCredentialProvider</groupId>
-  <artifactId>kubernetes-credential-provider</artifactId>
+  <artifactId>kubernetes-credentials-provider</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
