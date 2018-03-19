@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.cloudbees.jenkins.plugins.k8sCredentialProvider;
+package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import io.fabric8.kubernetes.api.model.Secret;
