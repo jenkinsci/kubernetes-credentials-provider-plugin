@@ -32,7 +32,7 @@
     <relativePath />
   </parent>
 
-  <groupId>com.cloudbees.jenkins.plugins.k8sCredentialProvider</groupId>
+  <groupId>com.cloudbees.jenkins.plugins</groupId>
   <artifactId>kubernetes-credentials-provider</artifactId>
   <version>0.7-SNAPSHOT</version>
   <packaging>hpi</packaging>

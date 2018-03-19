@@ -21,45 +21,38 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.cloudbees.jenkins.plugins.k8sCredentialProvider.convertors;
+package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors;
 
 import io.fabric8.kubernetes.api.model.Secret;
-import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl;
+import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.jenkinsci.plugins.variant.OptionalExtension;
-import com.cloudbees.jenkins.plugins.k8sCredentialProvider.CredentialsConvertionException;
-import com.cloudbees.jenkins.plugins.k8sCredentialProvider.SecretToCredentialConverter;
-import com.cloudbees.jenkins.plugins.k8sCredentialProvider.SecretUtils;
+import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
+import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretToCredentialConverter;
+import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretUtils;
 import com.cloudbees.plugins.credentials.CredentialsScope;
-import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 
 /**
  * SecretToCredentialConvertor that converts {@link UsernamePasswordCredentialsImpl}.
  */
 @OptionalExtension(requirePlugins={"plain-credentials"})
-public class FileCredentialsConvertor extends SecretToCredentialConverter {
+public class StringCredentialConvertor extends SecretToCredentialConverter {
 
     @Override
     public boolean canConvert(String type) {
-        return "secretFile".equals(type);
+        return "secretText".equals(type);
     }
 
     @Override
-    public FileCredentialsImpl convert(Secret secret) throws CredentialsConvertionException {
-        // check we have some data
-        SecretUtils.requireNonNull(secret.getData(), "secretFile definition contains no data");
+    public StringCredentialsImpl convert(Secret secret) throws CredentialsConvertionException {
+        // ensure we have some data
+        SecretUtils.requireNonNull(secret.getData(), "secretText kubernetes definition contains no data");
 
-        String filenameBase64 = SecretUtils.getNonNullSecretData(secret, "filename", "secretFile credential is missing the filename"); 
+        String textBase64 = SecretUtils.getNonNullSecretData(secret, "text", "secretText credential is missing the text");
 
-        String dataBase64 = SecretUtils.getNonNullSecretData(secret, "data", "secretFile credential is missing the data");
+        String secretText = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(textBase64), "secretText credential has an invalid text (must be base64 encoded UTF-8)");
 
-        String filename = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(filenameBase64), "secretFile credential has an invalid filename (must be base64 encoded UTF-8)");
-
-        byte[] _data = SecretUtils.requireNonNull(SecretUtils.base64Decode(dataBase64), "secretFile credential has an invalid data (must be base64 encoded data)");
-
-        SecretBytes sb = SecretBytes.fromBytes(_data);
-        return new FileCredentialsImpl(CredentialsScope.GLOBAL, SecretUtils.getCredentialId(secret), SecretUtils.getCredentialDescription(secret), filename, sb);
-
+        return new StringCredentialsImpl(CredentialsScope.GLOBAL, SecretUtils.getCredentialId(secret), SecretUtils.getCredentialDescription(secret), hudson.util.Secret.fromString(secretText));
     }
 
 }

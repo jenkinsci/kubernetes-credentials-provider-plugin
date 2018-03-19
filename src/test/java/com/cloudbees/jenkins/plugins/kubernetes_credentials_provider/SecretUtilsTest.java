@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.cloudbees.jenkins.plugins.k8sCredentialProvider;
+package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -29,6 +29,8 @@ import java.util.Collections;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.junit.Test;
+import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
+import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretUtils;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.text.StringContainsInOrder.stringContainsInOrder;
