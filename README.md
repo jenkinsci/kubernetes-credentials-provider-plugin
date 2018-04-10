@@ -14,11 +14,11 @@ There are examples of the supported types in [docs/examples](docs/examples)
 
 Both examples use a the following credentials configuration file https://github.com/jenkinsci/kubernetes-credentials-provider-plugin/blob/master/docs/examples/username-pass.yaml
 
-    withCredentials([usernamePassword(credentialsId: 'another-test-usernamepass', passwordVariable: 'bar', usernameVariable: 'foo')]) {
+    ```withCredentials([usernamePassword(credentialsId: 'another-test-usernamepass', passwordVariable: 'bar', usernameVariable: 'foo')]) {
         // username: env.foo
         // password: echo env.bar
-    }
+    }```
     
 or
     
-    git credentialsId: 'another-test-usernamepass', url: '<repository here>'
+    ```git credentialsId: 'another-test-usernamepass', url: '<repository here>'```
