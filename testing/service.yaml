@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    run: jenkins-k8s-creds
+  name: jenkins-k8s-creds
+  namespace: testing
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    run: jenkins-k8s-creds
+  sessionAffinity: None
+  type: LoadBalancer
+#status:
+#  loadBalancer:
+#    ingress:
+#    - ip: 35.205.207.250

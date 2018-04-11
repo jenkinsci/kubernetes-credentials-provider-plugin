@@ -1,0 +1,22 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: jenkins-k8s-creds
+  name: jenkins-k8s-creds
+  namespace: testing
+spec:
+  replicas: 1
+  template: 
+    metadata:
+      labels:
+        app: jenkins-k8s-creds
+    spec:
+      containers:
+      - name: jenkins-k8s-creds
+        imagePullPolicy: Always
+        image: eu.gcr.io/cdx-dev/jenkins-k8s-creds:latest
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+      serviceAccountName: secret-reader-svc
