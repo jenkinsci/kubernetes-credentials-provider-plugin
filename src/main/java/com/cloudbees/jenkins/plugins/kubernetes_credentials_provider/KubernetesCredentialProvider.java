@@ -211,4 +211,10 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
     public CredentialsStore getStore(ModelObject object) {
         return object == Jenkins.getInstance() ? store : null;
     }
+
+    @Override
+    public String getIconClassName() {
+        return "icon-credentials-kubernetes-store";
+    }
+
 }
