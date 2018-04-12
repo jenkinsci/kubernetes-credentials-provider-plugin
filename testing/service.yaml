@@ -11,10 +11,6 @@ spec:
     protocol: TCP
     targetPort: 8080
   selector:
-    run: jenkins-k8s-creds
+    app: jenkins-k8s-creds
   sessionAffinity: None
   type: LoadBalancer
-#status:
-#  loadBalancer:
-#    ingress:
-#    - ip: 35.205.207.250

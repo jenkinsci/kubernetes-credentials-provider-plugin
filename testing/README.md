@@ -17,7 +17,7 @@ They may require some small tweaks for your environment (as it will be different
 ### Deploying / upgrading Jenkins / plugin
 
 1. Build the plugin (mvn verify)
-2. build the docker image  (`docker build .. -f Dockerfile`)
+2. build the docker image  (`docker build .. -f Dockerfile -t jenkins-k8s-creds:latest`)
 3. push the docker image to the docker repo (specified in the app yaml)
    ```
       docker tag [SOURCE_IMAGE] [HOSTNAME]/[PROJECT-ID]/[IMAGE][:TAG]
@@ -25,7 +25,7 @@ They may require some small tweaks for your environment (as it will be different
    ```
    e.g
    ```
-      docker tag <sha> eu.gcr.io/myproject/jenkins-k8s-creds:latest
+      docker tag jenkins-k8s-creds:latest eu.gcr.io/myproject/jenkins-k8s-creds:latest
       docker push eu.gcr.io/myproject/jenkins-k8s-creds:latest
       
    ```
