@@ -1,5 +1,6 @@
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
+import java.util.Collections;
 import java.util.List;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
@@ -13,6 +14,7 @@ import hudson.security.ACL;
 import hudson.security.Permission;
 import jenkins.model.Jenkins;
 import com.cloudbees.plugins.credentials.Credentials;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.CredentialsStoreAction;
 import com.cloudbees.plugins.credentials.domains.Domain;
@@ -35,14 +37,17 @@ public class KubernetesCredentialsStore extends CredentialsStore {
 
     @Override
     public boolean hasPermission(@NonNull Authentication authentication, @NonNull Permission permission) {
-        return Jenkins.getInstance().getACL().hasPermission(authentication, permission);
+        return CredentialsProvider.VIEW.equals(permission) &&
+               Jenkins.getInstance().getACL().hasPermission(authentication, permission);
     }
 
     @NonNull
     @Override
     public List<Credentials> getCredentials(@NonNull Domain domain) {
-        // TODO: Filter by domain - how do I do this?
-        return  provider.getCredentials(Credentials.class, Jenkins.getInstance(), ACL.SYSTEM);
+        // Only the global domain is supported
+        return Domain.global().equals(domain)
+               ? provider.getCredentials(Credentials.class, Jenkins.getInstance(), ACL.SYSTEM)
+               : Collections.emptyList();
     }
 
     @Override
@@ -95,17 +100,12 @@ public class KubernetesCredentialsStore extends CredentialsStore {
                 Icon.ICON_XLARGE_STYLE, IconType.PLUGIN));
         }
 
-        /**
-         * {@inheritDoc}
-         */
+        @Override
         @NonNull
         public CredentialsStore getStore() {
             return store;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public String getIconFileName() {
             return isVisible()
@@ -113,9 +113,6 @@ public class KubernetesCredentialsStore extends CredentialsStore {
                : null;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public String getIconClassName() {
             return isVisible()
@@ -123,9 +120,6 @@ public class KubernetesCredentialsStore extends CredentialsStore {
                : null;
         }
 
-        /**
-         * {@inheritDoc}
-         */
         @Override
         public String getDisplayName() {
             return "Kubernetes";
