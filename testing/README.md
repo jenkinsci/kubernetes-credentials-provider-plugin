@@ -17,17 +17,21 @@ They may require some small tweaks for your environment (as it will be different
 ### Deploying / upgrading Jenkins / plugin
 
 1. Build the plugin (mvn verify)
-2. build the docker image  (`docker build .. -f Dockerfile -t jenkins-k8s-creds:latest`)
+2. build and tag the docker image
+   ```
+      docker build .. -f Dockerfile -t jenkins-k8s-creds:latest
+   ```
+   e.g.
+   ```
+      docker build .. -f Dockerfile -t eu.gcr.io/myproject/jenkins-k8s-creds:latest
+   ```
 3. push the docker image to the docker repo (specified in the app yaml)
    ```
-      docker tag [SOURCE_IMAGE] [HOSTNAME]/[PROJECT-ID]/[IMAGE][:TAG]
       docker push [HOSTNAME]/[PROJECT-ID]/[IMAGE][:TAG]
    ```
-   e.g
+   e.g.
    ```
-      docker tag jenkins-k8s-creds:latest eu.gcr.io/myproject/jenkins-k8s-creds:latest
-      docker push eu.gcr.io/myproject/jenkins-k8s-creds:latest
-      
+      docker push eu.gcr.io/myproject/jenkins-k8s-creds:latest      
    ```
 4. deploy the application  `kubectl apply -f jenkins-kube-creds.yaml`
 5. deploy service so that Jenkins is exposed (optional and one time only)  `kubectl apply -f service.yaml`
