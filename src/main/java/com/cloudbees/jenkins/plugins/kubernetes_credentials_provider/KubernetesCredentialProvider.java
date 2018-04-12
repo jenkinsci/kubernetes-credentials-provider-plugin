@@ -49,9 +49,12 @@ import hudson.init.Initializer;
 import hudson.init.TermMilestone;
 import hudson.init.Terminator;
 import hudson.model.ItemGroup;
+import hudson.model.ModelObject;
 import hudson.security.ACL;
+import jenkins.model.Jenkins;
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.common.IdCredentials;
 
 @Extension
@@ -66,6 +69,8 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
     private KubernetesClient client;
     @CheckForNull
     private Watch watch;
+
+    private KubernetesCredentialsStore store = new KubernetesCredentialsStore(this);
 
     @Initializer(after=InitMilestone.PLUGINS_PREPARED, fatal=false)
     @Restricted(NoExternalUse.class) // only for callbacks from Jenkins
@@ -92,15 +97,15 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
             // XXX https://github.com/fabric8io/kubernetes-client/issues/1014
             // watch(resourceVersion, watcher) is deprecated but there is nothing to say why?
             client = _client;
-            LOG.log(Level.FINER, "regestering watch");
+            LOG.log(Level.FINER, "registering watch");
             watch = _client.secrets().withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).watch(list.getMetadata().getResourceVersion(), this);
-            LOG.log(Level.FINER, "registered watch, retreiving secrets");
+            LOG.log(Level.FINER, "registered watch, retrieving secrets");
         } catch (KubernetesClientException kex) {
             LOG.log(Level.SEVERE, "Failed to initialise k8s secret provider, secrets from Kubernetes will not be available", kex);
             // TODO add an administrative warning to report this clearly to the admin
         }
     }
- 
+
 
     @Terminator(after=TermMilestone.STARTED)
     @Restricted(NoExternalUse.class) // only for callbacks from Jenkins
@@ -195,11 +200,15 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
                 else {
                     LOG.log(Level.WARNING, "Failed to convert Secret ''{0}'' of type {1} due to {2}", new Object[] {SecretUtils.getCredentialId(s), type, ex.getMessage()});
                 }
-                return null; 
+                return null;
             }
         }
         LOG.log(Level.WARNING, "No SecretToCredentialConveror found to convert secrets of type {0}", type);
         return null;
     }
 
+    @Override
+    public CredentialsStore getStore(ModelObject object) {
+        return object == Jenkins.getInstance() ? store : null;
+    }
 }
