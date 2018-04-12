@@ -4,7 +4,6 @@ import java.util.List;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import org.acegisecurity.Authentication;
-import org.apache.commons.lang.NotImplementedException;
 import org.jenkins.ui.icon.Icon;
 import org.jenkins.ui.icon.IconSet;
 import org.jenkins.ui.icon.IconType;
@@ -48,18 +47,18 @@ public class KubernetesCredentialsStore extends CredentialsStore {
 
     @Override
     public boolean addCredentials(@NonNull Domain domain, @NonNull Credentials credentials) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean removeCredentials(@NonNull Domain domain, @NonNull Credentials credentials) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean updateCredentials(@NonNull Domain domain, @NonNull Credentials current,
                                      @NonNull Credentials replacement) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Nullable
