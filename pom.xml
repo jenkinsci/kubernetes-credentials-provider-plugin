@@ -67,6 +67,10 @@
       <id>teilo</id>
       <name>James Nord</name>
     </developer>
+    <developer>
+      <id>agentgonzo</id>
+      <name>Steve Arch</name>
+    </developer>
   </developers>
 
   <dependencyManagement>
