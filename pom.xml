@@ -33,7 +33,7 @@
 
   <groupId>com.cloudbees.jenkins.plugins</groupId>
   <artifactId>kubernetes-credentials-provider</artifactId>
-  <version>0.9</version>
+  <version>0.10-SNAPSHOT</version>
   <packaging>hpi</packaging>
 
   <name>Kubernetes Credentials Provider</name>
@@ -52,7 +52,7 @@
     <connection>scm:git:ssh://git@github.com/jenkinsci/kubernetes-credentials-provider-plugin.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/jenkinsci/kubernetes-credentials-provider-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/kubernetes-credentials-provider-plugin</url>
-    <tag>kubernetes-credentials-provider-0.9</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <licenses>
