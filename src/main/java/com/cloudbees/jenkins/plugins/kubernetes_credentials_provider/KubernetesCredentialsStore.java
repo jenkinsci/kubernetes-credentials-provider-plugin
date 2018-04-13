@@ -45,9 +45,9 @@ public class KubernetesCredentialsStore extends CredentialsStore {
     @Override
     public List<Credentials> getCredentials(@NonNull Domain domain) {
         // Only the global domain is supported
-        return Domain.global().equals(domain)
-               ? provider.getCredentials(Credentials.class, Jenkins.getInstance(), ACL.SYSTEM)
-               : Collections.emptyList();
+        if (Domain.global().equals(domain) && Jenkins.getInstance().hasPermission(CredentialsProvider.VIEW))
+            return provider.getCredentials(Credentials.class, Jenkins.getInstance(), ACL.SYSTEM);
+        return Collections.emptyList();
     }
 
     @Override
