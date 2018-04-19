@@ -19,4 +19,26 @@ spec:
         ports:
         - containerPort: 8080
           protocol: TCP
+        volumeMounts:
+          - mountPath: /var/jenkins_home
+            name: jenkins
+        securityContext:
+          runAsUser: 0 # Need to run as root in order to be able to access volume mount :-(
       serviceAccountName: secret-reader-svc
+      volumes:
+      - name: jenkins
+        persistentVolumeClaim:
+          claimName: jenkins
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: jenkins
+  namespace: testing
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
