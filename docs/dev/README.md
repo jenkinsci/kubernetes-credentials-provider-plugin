@@ -21,11 +21,11 @@ All commands are run from `docs/dev` unless otherwise specified.
 1. Build the plugin (`mvn verify`) (from the root of the repository)
 2. build and tag the docker image
    ```
-      docker build ../.. -f Dockerfile -t jenkins-k8s-creds:latest
+      docker build ../.. -f Dockerfile -t jenkins-k8s-creds
    ```
    e.g.
    ```
-      docker build ../.. -f Dockerfile -t eu.gcr.io/myproject/jenkins-k8s-creds:latest
+      docker build ../.. -f Dockerfile -t eu.gcr.io/myproject/jenkins-k8s-creds
    ```
 3. push the docker image to the docker repo (specified in the app yaml)
    ```
@@ -33,7 +33,7 @@ All commands are run from `docs/dev` unless otherwise specified.
    ```
    e.g.
    ```
-      docker push eu.gcr.io/myproject/jenkins-k8s-creds:latest      
+      docker push eu.gcr.io/myproject/jenkins-k8s-creds      
    ```
 4. deploy the application  `kubectl apply -f jenkins-kube-creds.yaml`
 5. deploy service so that Jenkins is exposed (optional and one time only)  `kubectl apply -f service.yaml`
@@ -43,3 +43,4 @@ Note: [this page](https://cloud.google.com/container-registry/docs/pushing-and-p
 ## Documentation
 
 Documentation can be generated locally for testing using `bundle exec jekyll serve` once [Jekyll](https://help.github.com/articles/setting-up-your-github-pages-site-locally-with-jekyll/) is installed.
+In short: `gcloud docker -- push <image>`

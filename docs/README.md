@@ -17,7 +17,7 @@ The plugin supports most common credential types and defines an [`extension poin
 
 [^AWS]: it is reported that running in KOPS on AWS you will also need permissions to get/watch/list `configmaps`
 
-Because granting these permissions for secrets is not something that should be done lightly it is highly advised that you run Jenkins in a unique namespace.
+Because granting these permissions for secrets is not something that should be done lightly it is highly advised for security reasons that you both create a unique service account to run Jenkins as, and run Jenkins in a unique namespace.
 
 ## Managing credentials
 
@@ -27,11 +27,11 @@ Credentials are added by adding them as secrets to Kubernetes, this is covered i
 
 ### Updating credentials
 
-Credentials are updated by updating the backing Secret in Kubernetes. 
+Credentials are updated automatically when changes are made to the Kubernetes secret.
 
 ### Deleting credentials
 
-Credentials are deleted by deleting the backing Secret from Kubernetes. 
+Credentials are deleted automatically when the secret is deleted from Kubernetes. 
 
 ### Viewing credentials
 
@@ -67,7 +67,7 @@ git credentialsId: 'another-test-usernamepass', url: '<repository here>'
 # Issue reporting
 
 Any issues should be reporting in the main [Jenkins JIRA tracker](https://issues.jenkins-ci.org).
-The issue tracker is not a help forum, for help please use [IRC](https://jenkins.io/chat/) or the []user mailing list](https://groups.google.com/forum/#!forum/jenkinsci-users) 
+The issue tracker is not a help forum, for help please use [IRC](https://jenkins.io/chat/) or the [user mailing list](https://groups.google.com/forum/#!forum/jenkinsci-users) 
 
 # Releases and Change logs
 
