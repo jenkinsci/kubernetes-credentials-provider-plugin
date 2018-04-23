@@ -39,8 +39,8 @@ All commands are run from `docs/dev` unless otherwise specified.
 5. deploy service so that Jenkins is exposed (optional and one time only)  `kubectl apply -f service.yaml`
 
 Note: [this page](https://cloud.google.com/container-registry/docs/pushing-and-pulling) is useful for setting up auth to push to GKE
+In short: `gcloud docker -- push <image>`
 
 ## Documentation
 
 Documentation can be generated locally for testing using `bundle exec jekyll serve` once [Jekyll](https://help.github.com/articles/setting-up-your-github-pages-site-locally-with-jekyll/) is installed.
-In short: `gcloud docker -- push <image>`
