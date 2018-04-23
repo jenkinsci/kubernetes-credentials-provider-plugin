@@ -1,8 +1,79 @@
-# test123
- hello testing
+---
+layout: default
+title:  "Kubernetes Credentials Provider Plugin"
+---
 
-examples
+The *Kubernetes Credentials Provider* is a [Jenkins](https://jenkins.io) plugin to enable the retreival of [Credentials](https://plugins.jenkins.io/credentials) directly from Kubernetes.
 
+The plugin supports most common credential types and defines an [`extension point`](https://jenkins.io/doc/developer/extensions/kubernetes-credentials-provider/) that can be implemented by other plugins to add support for custom Credential types. 
+
+# Using
+
+### Pre-requisites
+
+- Jenkins must be running in a kubernetes cluster
+- The pod running Jenkins must have a service account with a role that sets the following:
+  - get/watch/list permissions for `secrets`[^AWS] 
+
+[^AWS]: it is reported that running in KOPS on AWS you will also need permissions to get/watch/list `configmaps`
+
+Because granting these permissions for secrets is not something that should be done lightly it is highly advised that you run Jenkins in a unique namespace.
+
+## Managing credentials
+
+### Adding credentials
+
+Credentials are added by adding them as secrets to Kubernetes, this is covered in more detail in the [examples](examples) page.
+
+### Updating credentials
+
+Credentials are updated by updating the backing Secret in Kubernetes. 
+
+### Deleting credentials
+
+Credentials are deleted by deleting the backing Secret from Kubernetes. 
+
+### Viewing credentials
+
+Once added the credentials will be visible in Jenkins under the `/credentials/` page.
+Any credentials that are loaded from Kubernetes can be identified by the Kubernetes provider icon in the view.
+
+## Using the credentials inside Jenkins
+
+To use credentials in a pipeline you do not need to do anything special, you access them just as you would for credentials stored in Jenkins. 
+
+for example, if you had the follwing Secret defined in Kubernetes:
 {% highlight ruby linenos %}
 {% include_relative examples/username-pass.yaml %}
 {% endhighlight %}
+
+you could use it via the [credentials binding plugin](https://plugins.jenkins.io/credentials-binding) 
+
+```
+withCredentials([usernamePassword(credentialsId: 'another-test-usernamepass',
+                                  passwordVariable: 'bar', 
+                                  usernameVariable: 'foo')]) {
+  // username: env.foo
+  // password: echo env.bar
+}
+```
+
+or by passing the credentialId directly to the step requiring a credential:
+
+```
+git credentialsId: 'another-test-usernamepass', url: '<repository here>'
+```
+
+# Issue reporting
+
+Any issues should be reporting in the main [Jenkins JIRA tracker](https://issues.jenkins-ci.org).
+The issue tracker is not a help forum, for help please use [IRC](https://jenkins.io/chat/) or the []user mailing list](https://groups.google.com/forum/#!forum/jenkinsci-users) 
+
+# Releases and Change logs
+
+The [release notes](https://github.com/jenkinsci/kubernetes-credentials-provider-plugin/releases) are managed in GitHub. 
+The latest release will be visible in the Jenkins Update center approximatly 8 hours after a release.
+
+# Developing
+
+This [page](dev/) contains more information on a developer environment.

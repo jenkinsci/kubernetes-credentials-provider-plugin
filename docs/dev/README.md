@@ -7,6 +7,8 @@ They may require some small tweaks for your environment (as it will be different
 
 ## Testing
 
+All commands are run from `docs/dev` unless otherwise specified.
+
 ### Initial setup...
 
 1. Create the testing namespace  `kubectl apply -f testing-namespace.yaml`
@@ -16,14 +18,14 @@ They may require some small tweaks for your environment (as it will be different
 
 ### Deploying / upgrading Jenkins / plugin
 
-1. Build the plugin (mvn verify)
+1. Build the plugin (`mvn verify`) (from the root of the repository)
 2. build and tag the docker image
    ```
-      docker build .. -f Dockerfile -t jenkins-k8s-creds:latest
+      docker build ../.. -f Dockerfile -t jenkins-k8s-creds:latest
    ```
    e.g.
    ```
-      docker build .. -f Dockerfile -t eu.gcr.io/myproject/jenkins-k8s-creds:latest
+      docker build ../.. -f Dockerfile -t eu.gcr.io/myproject/jenkins-k8s-creds:latest
    ```
 3. push the docker image to the docker repo (specified in the app yaml)
    ```
@@ -37,3 +39,7 @@ They may require some small tweaks for your environment (as it will be different
 5. deploy service so that Jenkins is exposed (optional and one time only)  `kubectl apply -f service.yaml`
 
 Note: [this page](https://cloud.google.com/container-registry/docs/pushing-and-pulling) is useful for setting up auth to push to GKE
+
+## Documentation
+
+Documentation can be generated locally for testing using `bundle exec jekyll serve` once [Jekyll](https://help.github.com/articles/setting-up-your-github-pages-site-locally-with-jekyll/) is installed.

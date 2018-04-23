@@ -13,3 +13,8 @@ work
 .project
 build
 .fbExcludeFilterFile
+
+# jekyll local files
+docs/_site/
+
+docs/Gemfile.lock
