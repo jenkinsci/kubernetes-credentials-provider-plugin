@@ -1,3 +1,9 @@
+---
+layout: default
+title:  "Kubernetes Credentials Provider Plugin: Development"
+permalink: /dev/
+---
+
 # Helpful settings for testing
 
 The plugin will run if you have configured kubectl locally (and have the permissions required to watch/list/read secrets).  

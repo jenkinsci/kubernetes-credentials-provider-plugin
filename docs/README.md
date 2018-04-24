@@ -1,6 +1,7 @@
 ---
 layout: default
 title:  "Kubernetes Credentials Provider Plugin"
+permalink: /
 ---
 
 The *Kubernetes Credentials Provider* is a [Jenkins](https://jenkins.io) plugin to enable the retreival of [Credentials](https://plugins.jenkins.io/credentials) directly from Kubernetes.

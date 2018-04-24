@@ -1,6 +1,7 @@
 ---
 layout: default
 title:  "Kubernetes Credentials Provider Plugin : Examples"
+permalink: /examples/
 ---
 
 # Credential Examples
