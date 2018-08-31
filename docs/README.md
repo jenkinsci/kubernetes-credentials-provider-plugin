@@ -48,14 +48,13 @@ for example, if you had the follwing Secret defined in Kubernetes:
 {% include_relative examples/username-pass.yaml %}
 {% endhighlight %}
 
-you could use it via the [credentials binding plugin](https://plugins.jenkins.io/credentials-binding) 
+you could use it via the [Credentials Binding plugin](https://plugins.jenkins.io/credentials-binding) 
 
-```
+```groovy
 withCredentials([usernamePassword(credentialsId: 'another-test-usernamepass',
-                                  passwordVariable: 'bar', 
-                                  usernameVariable: 'foo')]) {
-  // username: env.foo
-  // password: echo env.bar
+                                  usernameVariable: 'USER', 
+                                  passwordVariable: 'PASS')]) {
+  sh 'curl -u $USER:$PASS https://some-api/'
 }
 ```
 
