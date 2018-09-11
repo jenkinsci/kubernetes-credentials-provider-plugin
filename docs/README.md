@@ -61,7 +61,7 @@ withCredentials([usernamePassword(credentialsId: 'another-test-usernamepass',
 or by passing the credentialId directly to the step requiring a credential:
 
 {% highlight groovy %}
-git credentialsId: 'another-test-usernamepass', url: '<repository here>'
+git credentialsId: 'another-test-usernamepass', url: 'https://github.com/foo/bar'
 {% endhighlight %}
 
 # Issue reporting
