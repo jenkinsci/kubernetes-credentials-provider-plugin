@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Secret
+metadata:
+# this is the jenkins id.
+  name: "jenkins-key"
+  labels:
+# so we know what type it is.
+    "jenkins.io/credentials-type": "basicSSHUserPrivateKey"
+  annotations: {
+# description - can not be a label as spaces are not allowed
+    "jenkins.io/credentials-description" : "basic user private key credential from Kubernetes"
+  }
+type: Opaque
+data:
+# base64 encoded username
+  username: "amVua2lucw==" # jenkins
+  privateKey: "bogus"
