@@ -50,7 +50,7 @@ for example, if you had the follwing Secret defined in Kubernetes:
 
 you could use it via the [Credentials Binding plugin](https://plugins.jenkins.io/credentials-binding) 
 
-```groovy
+```
 withCredentials([usernamePassword(credentialsId: 'another-test-usernamepass',
                                   usernameVariable: 'USER', 
                                   passwordVariable: 'PASS')]) {
