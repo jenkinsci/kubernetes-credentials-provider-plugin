@@ -27,13 +27,13 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>3.6</version>
+    <version>3.21</version>
     <relativePath />
   </parent>
 
   <groupId>com.cloudbees.jenkins.plugins</groupId>
   <artifactId>kubernetes-credentials-provider</artifactId>
-  <version>0.10-SNAPSHOT</version>
+  <version>${revision}${changelist}</version>
   <packaging>hpi</packaging>
 
   <name>Kubernetes Credentials Provider</name>
@@ -42,6 +42,8 @@
   <inceptionYear>2018</inceptionYear>
 
   <properties>
+    <revision>0.10</revision>
+    <changelist>-SNAPSHOT</changelist>
     <jenkins.version>2.89</jenkins.version>
     <java.level>8</java.level>
     <!--  override crappy OSS default -->
@@ -52,7 +54,7 @@
     <connection>scm:git:ssh://git@github.com/jenkinsci/kubernetes-credentials-provider-plugin.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/jenkinsci/kubernetes-credentials-provider-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/kubernetes-credentials-provider-plugin</url>
-    <tag>HEAD</tag>
+    <tag>${scmTag}</tag>
   </scm>
 
   <licenses>
