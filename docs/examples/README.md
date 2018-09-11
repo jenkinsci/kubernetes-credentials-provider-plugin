@@ -21,38 +21,38 @@ Where Strings are encoded using base64 the bytes encoded should be from the UTF-
 
 The UserName password credentials are probably the most commonly uses.
 
-{% highlight ruby linenos %}
+{% highlight yaml linenos %}
 {% include_relative username-pass.yaml %}
 {% endhighlight %}
 
 
 ## Secret Text
 
-{% highlight ruby linenos %}
+{% highlight yaml linenos %}
 {% include_relative secretText.yaml %}
 {% endhighlight %}
 
 ## Secret File
 
-{% highlight ruby linenos %}
+{% highlight yaml linenos %}
 {% include_relative secretFile.yaml %}
 {% endhighlight %}
 
 ## Certificates
 
-{% highlight ruby linenos %}
+{% highlight yaml linenos %}
 {% include_relative certificate.yaml %}
 {% endhighlight %}
 
 ## Basic SSH Private Key
 
 Without passphrase:
-{% highlight ruby linenos %}
+{% highlight yaml linenos %}
 {% include_relative basic-ssh-username-private-key.yaml %}
 {% endhighlight %}
 
 With passphrase:
-{% highlight ruby linenos %}
+{% highlight yaml linenos %}
 {% include_relative basic-ssh-username-private-key-passphrase.yaml %}
 {% endhighlight %}
 
@@ -63,7 +63,7 @@ Sometimes you may want the secret to be able to be consumed by another tool as w
 In order to facilitate this the plugin supports the remapping fields.
 In order to achieve this you add an attribute begining with `jenkins.io/credentials-keybinding-` and ending with the normal field name and having the value of the new field name.
 The following example remaps the `username` and `password` fields to `user` and `pass`:
-{% highlight ruby linenos %}
+{% highlight yaml linenos %}
 {% include_relative username-pass-with-custom-mapping.yaml %}
 {% endhighlight %}
 

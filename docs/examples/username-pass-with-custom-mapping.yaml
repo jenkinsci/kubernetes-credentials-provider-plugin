@@ -18,5 +18,5 @@ type: Opaque
 data:
 # UTF-8 base64 encoded
   user: bXlVc2VybmFtZQ==     #myUsername
-  ppass: UGEkJHdvcmQ=         #Pa$$word
+  pass: UGEkJHdvcmQ=         #Pa$$word
 

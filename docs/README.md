@@ -44,25 +44,25 @@ Any credentials that are loaded from Kubernetes can be identified by the Kuberne
 To use credentials in a pipeline you do not need to do anything special, you access them just as you would for credentials stored in Jenkins. 
 
 for example, if you had the follwing Secret defined in Kubernetes:
-{% highlight ruby linenos %}
+{% highlight yaml linenos %}
 {% include_relative examples/username-pass.yaml %}
 {% endhighlight %}
 
 you could use it via the [Credentials Binding plugin](https://plugins.jenkins.io/credentials-binding) 
 
-```
+{% highlight groovy %}
 withCredentials([usernamePassword(credentialsId: 'another-test-usernamepass',
                                   usernameVariable: 'USER', 
                                   passwordVariable: 'PASS')]) {
   sh 'curl -u $USER:$PASS https://some-api/'
 }
-```
+{% endhighlight %}
 
 or by passing the credentialId directly to the step requiring a credential:
 
-```
+{% highlight groovy %}
 git credentialsId: 'another-test-usernamepass', url: '<repository here>'
-```
+{% endhighlight %}
 
 # Issue reporting
 
