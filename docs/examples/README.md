@@ -8,7 +8,7 @@ permalink: /examples/
 
 Credentials are added and updated by adding/updating them as secrets to Kubernetes.
 The format of the Secret is different depending on the type of credential you wish to expose, but will all have several things in common: 
-- the label  `"jenkins.io/credentials-type"` with a type that is known to the plugin (e.g. `certificate`, `secretFile`, `secretText`, `usernamePassword`)
+- the label  `"jenkins.io/credentials-type"` with a type that is known to the plugin (e.g. `certificate`, `secretFile`, `secretText`, `usernamePassword`, `basicSSHUserPrivateKey`)
 - an annotation for the credential description: `"jenkins.io/credentials-description" : "certificate credential from Kubernetes"`
 
 To add or update a Credential just execute the command `kubectl apply -f <nameOfFile.yaml>` 
@@ -21,27 +21,39 @@ Where Strings are encoded using base64 the bytes encoded should be from the UTF-
 
 The UserName password credentials are probably the most commonly uses.
 
-{% highlight ruby linenos %}
+{% highlight yaml linenos %}
 {% include_relative username-pass.yaml %}
 {% endhighlight %}
 
 
 ## Secret Text
 
-{% highlight ruby linenos %}
+{% highlight yaml linenos %}
 {% include_relative secretText.yaml %}
 {% endhighlight %}
 
 ## Secret File
 
-{% highlight ruby linenos %}
+{% highlight yaml linenos %}
 {% include_relative secretFile.yaml %}
 {% endhighlight %}
 
 ## Certificates
 
-{% highlight ruby linenos %}
+{% highlight yaml linenos %}
 {% include_relative certificate.yaml %}
+{% endhighlight %}
+
+## Basic SSH Private Key
+
+Without passphrase:
+{% highlight yaml linenos %}
+{% include_relative basic-ssh-username-private-key.yaml %}
+{% endhighlight %}
+
+With passphrase:
+{% highlight yaml linenos %}
+{% include_relative basic-ssh-username-private-key-passphrase.yaml %}
 {% endhighlight %}
 
 
@@ -51,7 +63,7 @@ Sometimes you may want the secret to be able to be consumed by another tool as w
 In order to facilitate this the plugin supports the remapping fields.
 In order to achieve this you add an attribute begining with `jenkins.io/credentials-keybinding-` and ending with the normal field name and having the value of the new field name.
 The following example remaps the `username` and `password` fields to `user` and `pass`:
-{% highlight ruby linenos %}
+{% highlight yaml linenos %}
 {% include_relative username-pass-with-custom-mapping.yaml %}
 {% endhighlight %}
 

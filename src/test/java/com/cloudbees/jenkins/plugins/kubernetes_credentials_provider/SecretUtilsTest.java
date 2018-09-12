@@ -26,6 +26,7 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Optional;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.junit.Test;
@@ -187,5 +188,34 @@ public class SecretUtilsTest {
         } catch (CredentialsConvertionException cce) {
             assertThat(cce.getMessage(), stringContainsInOrder("oops", "mapped to", mappedName));
         } 
+    }
+
+    @Test
+    public void getOptionalSecretDataWithEntry() throws CredentialsConvertionException {
+        String key = "a-key";
+        String datum = "some-data";
+        Optional<String> optdatum = Optional.of(datum);
+        Secret s = new SecretBuilder().withNewMetadata().endMetadata().addToData(key, datum).build();
+        assertThat(SecretUtils.getOptionalSecretData(s, key, "ignored"), is(optdatum));
+    }
+
+    @Test
+    public void getOptionalSecretDataWithMappedEntry() throws CredentialsConvertionException {
+        String key = "a-key";
+        String map = "not-the-key";
+        String datum = "some-data";
+        Optional<String> optdatum = Optional.of(datum);
+        Secret s = new SecretBuilder().withNewMetadata().addToAnnotations("jenkins.io/credentials-keybinding-"+key, map).endMetadata().addToData(map, datum).build();
+        assertThat(SecretUtils.getOptionalSecretData(s, key, "ignored"), is(optdatum));
+    }
+
+    @Test
+    public void getOptionalSecretDataWithMissingKey() throws CredentialsConvertionException {
+        String keyexists = "a-key-that-exists";
+        String keydoesnotexist = "a-key-that-does-not-exist";
+        String datum = "some-data";
+        Optional<String> emptyOpt = Optional.empty();
+        Secret s = new SecretBuilder().withNewMetadata().endMetadata().addToData(keyexists, datum).build();
+        assertThat(SecretUtils.getOptionalSecretData(s, keydoesnotexist, "ignored"), is(emptyOpt));
     }
 }

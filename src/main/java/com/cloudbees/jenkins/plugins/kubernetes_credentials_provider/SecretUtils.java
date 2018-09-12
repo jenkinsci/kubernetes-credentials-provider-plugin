@@ -32,6 +32,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.Optional;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -171,7 +172,23 @@ public abstract class SecretUtils {
         return requireNonNull(s.getData().get(mappedKey), exceptionMessage, mappedKey);
     }
 
-
+    /**
+     * Get optional data for the specified key (or the mapped key if key is mapped)
+     *
+     * @param s the Secret
+     * @param key the key to get the data for (which may be mapped to another key).
+     * @param exceptionMessage the detailMessage of the exception if the data for the key (or mapped key) was not
+     *            present.
+     * @return Optional data for specified key
+     * @throws CredentialsConvertionException if the data was not present.
+     */
+    public static Optional<String> getOptionalSecretData(Secret s, String key, String exceptionMessage) throws CredentialsConvertionException {
+        String mappedKey = getKeyName(s, key);
+        if (s.getData().containsKey(key) || s.getData().containsKey(mappedKey)) {
+            return Optional.of(getNonNullSecretData(s, key, exceptionMessage));
+        }
+        return Optional.empty();
+    }
 
     /**
      * Get the mapping for the specified key name. Secrets can override the defaults used by the plugin by specifying an
