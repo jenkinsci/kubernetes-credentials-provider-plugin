@@ -6,14 +6,13 @@ metadata:
   labels:
 # so we know what type it is.
     "jenkins.io/credentials-type": "usernamePassword"
-  annotations: {
+  annotations:
 # description - can not be a label as spaces are not allowed
-    "jenkins.io/credentials-description" : "credentials from Kubernetes",
+    "jenkins.io/credentials-description" : "credentials from Kubernetes"
     # map the username field to u
-    "jenkins.io/credentials-keybinding-username" : "u",
+    "jenkins.io/credentials-keybinding-username" : "u"
     # map the password field to p
     "jenkins.io/credentials-keybinding-password" : "p"
-  }
 type: Opaque
 data:
 # UTF-8 base64 encoded
