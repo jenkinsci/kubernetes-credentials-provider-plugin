@@ -6,12 +6,11 @@ metadata:
   labels:
 # so we know what type it is.
     "jenkins.io/credentials-type": "secretText"
-  annotations: {
+  annotations:
 # description - can not be a label as spaces are not allowed
-    "jenkins.io/credentials-description" : "secret text credential from Kubernetes",
+    "jenkins.io/credentials-description" : "secret text credential from Kubernetes"
     # map the text field to t
     "jenkins.io/credentials-keybinding-text" : "t"
-  }
 type: Opaque
 data:
 # UTF-8 base64 encoded
