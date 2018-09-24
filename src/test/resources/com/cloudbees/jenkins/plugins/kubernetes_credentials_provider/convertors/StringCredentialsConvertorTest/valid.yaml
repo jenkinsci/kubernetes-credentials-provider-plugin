@@ -10,6 +10,5 @@ metadata:
 # description - can not be a label as spaces are not allowed
     "jenkins.io/credentials-description" : "secret text credential from Kubernetes"
 type: Opaque
-data:
-# UTF-8 base64 encoded
-  text: bXlTZWNyZXQh  # MySecret!
+stringData:
+  text: mySecret!

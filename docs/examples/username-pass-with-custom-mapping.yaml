@@ -14,8 +14,6 @@ metadata:
     # map the password field to pass
     "jenkins.io/credentials-keybinding-password" : "pass"
 type: Opaque
-data:
-# UTF-8 base64 encoded
-  user: bXlVc2VybmFtZQ==     #myUsername
-  pass: UGEkJHdvcmQ=         #Pa$$word
-
+stringData:
+  user: myUsername
+  pass: 'Pa$$word'

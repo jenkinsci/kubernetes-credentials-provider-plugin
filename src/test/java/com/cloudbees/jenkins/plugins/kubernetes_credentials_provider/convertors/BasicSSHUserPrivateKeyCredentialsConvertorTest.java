@@ -24,9 +24,7 @@
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors;
 
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,7 +37,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import hudson.util.HistoricalSecrets;
 import jenkins.security.ConfidentialStore;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
-import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors.BasicSSHUserPrivateKeyCredentialsConvertor;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -111,7 +108,7 @@ public class BasicSSHUserPrivateKeyCredentialsConvertorTest {
         BasicSSHUserPrivateKeyCredentialsConvertor convertor = new BasicSSHUserPrivateKeyCredentialsConvertor();
 
         try (InputStream is = get("valid.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
+            Secret secret = Helper.unmarshal(is);
             assertThat("The Secret was loaded correctly from disk", notNullValue());
             BasicSSHUserPrivateKey credential = convertor.convert(secret);
             assertThat(credential, notNullValue());
@@ -129,7 +126,7 @@ public class BasicSSHUserPrivateKeyCredentialsConvertorTest {
         BasicSSHUserPrivateKeyCredentialsConvertor convertor = new BasicSSHUserPrivateKeyCredentialsConvertor();
 
         try (InputStream is = get("validPassphrase.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
+            Secret secret = Helper.unmarshal(is);
             assertThat("The Secret was loaded correctly from disk", notNullValue());
             BasicSSHUserPrivateKey credential = convertor.convert(secret);
             assertThat(credential, notNullValue());
@@ -147,7 +144,7 @@ public class BasicSSHUserPrivateKeyCredentialsConvertorTest {
         BasicSSHUserPrivateKeyCredentialsConvertor convertor = new BasicSSHUserPrivateKeyCredentialsConvertor();
 
         try (InputStream is = get("validMapped.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
+            Secret secret = Helper.unmarshal(is);
             assertThat("The Secret was loaded correctly from disk", notNullValue());
             BasicSSHUserPrivateKey credential = convertor.convert(secret);
             assertThat(credential, notNullValue());
@@ -165,7 +162,7 @@ public class BasicSSHUserPrivateKeyCredentialsConvertorTest {
         BasicSSHUserPrivateKeyCredentialsConvertor convertor = new BasicSSHUserPrivateKeyCredentialsConvertor();
 
         try (InputStream is = get("validPassphraseMapped.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
+            Secret secret = Helper.unmarshal(is);
             assertThat("The Secret was loaded correctly from disk", notNullValue());
             BasicSSHUserPrivateKey credential = convertor.convert(secret);
             assertThat(credential, notNullValue());
@@ -183,7 +180,7 @@ public class BasicSSHUserPrivateKeyCredentialsConvertorTest {
         BasicSSHUserPrivateKeyCredentialsConvertor convertor = new BasicSSHUserPrivateKeyCredentialsConvertor();
 
         try (InputStream is = get("missingUsername.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
+            Secret secret = Helper.unmarshal(is);
             convertor.convert(secret);
             fail("Exception should have been thrown");
         } catch (CredentialsConvertionException cex) {
@@ -196,7 +193,7 @@ public class BasicSSHUserPrivateKeyCredentialsConvertorTest {
         BasicSSHUserPrivateKeyCredentialsConvertor convertor = new BasicSSHUserPrivateKeyCredentialsConvertor();
 
         try (InputStream is = get("missingPrivateKey.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
+            Secret secret = Helper.unmarshal(is);
             convertor.convert(secret);
             fail("Exception should have been thrown");
         } catch (CredentialsConvertionException cex) {
@@ -209,7 +206,7 @@ public class BasicSSHUserPrivateKeyCredentialsConvertorTest {
         BasicSSHUserPrivateKeyCredentialsConvertor convertor = new BasicSSHUserPrivateKeyCredentialsConvertor();
 
         try (InputStream is = get("corruptUsername.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
+            Secret secret = Helper.unmarshal(is);
             convertor.convert(secret);
             fail("Exception should have been thrown");
         } catch (CredentialsConvertionException cex) {
@@ -222,7 +219,7 @@ public class BasicSSHUserPrivateKeyCredentialsConvertorTest {
         BasicSSHUserPrivateKeyCredentialsConvertor convertor = new BasicSSHUserPrivateKeyCredentialsConvertor();
 
         try (InputStream is = get("corruptPrivateKey.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
+            Secret secret = Helper.unmarshal(is);
             convertor.convert(secret);
             fail("Exception should have been thrown");
         } catch (CredentialsConvertionException cex) {
@@ -235,7 +232,7 @@ public class BasicSSHUserPrivateKeyCredentialsConvertorTest {
         BasicSSHUserPrivateKeyCredentialsConvertor convertor = new BasicSSHUserPrivateKeyCredentialsConvertor();
 
         try (InputStream is = get("corruptPassphrase.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
+            Secret secret = Helper.unmarshal(is);
             convertor.convert(secret);
             fail("Exception should have been thrown");
         } catch (CredentialsConvertionException cex) {
@@ -248,7 +245,7 @@ public class BasicSSHUserPrivateKeyCredentialsConvertorTest {
         BasicSSHUserPrivateKeyCredentialsConvertor convertor = new BasicSSHUserPrivateKeyCredentialsConvertor();
  
         try (InputStream is = get("void.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
+            Secret secret = Helper.unmarshal(is);
             convertor.convert(secret);
             fail("Exception should have been thrown");
         } catch (CredentialsConvertionException cex) {
