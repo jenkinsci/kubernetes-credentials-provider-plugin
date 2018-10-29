@@ -30,6 +30,7 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Optional;
@@ -200,11 +201,13 @@ public abstract class SecretUtils {
      * @return the custom mapping for the key or {@code key} (identical object) if there is no custom mapping.
      */
     public static String getKeyName(Secret s, String key) {
-        String customMapping = s.getMetadata().getAnnotations().get(JENKINS_IO_CREDENTIALS_KEYBINDING_ANNOTATION_PREFIX + key);
-        if (customMapping != null && customMapping.length() > 0) {
-            return customMapping;
+        Map<String, String> annotations = s.getMetadata().getAnnotations();
+        if (annotations != null && annotations.size() > 0){
+            String customMapping = s.getMetadata().getAnnotations().get(JENKINS_IO_CREDENTIALS_KEYBINDING_ANNOTATION_PREFIX + key);
+            if (customMapping != null && customMapping.length() > 0) {
+                return customMapping;
+            }
         }
         return key;
     }
-
 }
