@@ -26,6 +26,7 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,6 +40,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import hudson.util.HistoricalSecrets;
 import jenkins.security.ConfidentialStore;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
+import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors.FileCredentialsConvertor;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
@@ -76,7 +78,7 @@ public class FileCredentialsConvertorTest {
         FileCredentialsConvertor convertor = new FileCredentialsConvertor();
 
         try (InputStream is = get("valid.yaml")) {
-            Secret secret = Helper.unmarshal(is);
+            Secret secret = Serialization.unmarshal(is, Secret.class);
             assertThat("The Secret was loaded correctly from disk", notNullValue());
             FileCredentialsImpl credential = convertor.convert(secret);
             assertThat(credential, notNullValue());
@@ -93,7 +95,7 @@ public class FileCredentialsConvertorTest {
         FileCredentialsConvertor convertor = new FileCredentialsConvertor();
 
         try (InputStream is = get("validMapped.yaml")) {
-            Secret secret = Helper.unmarshal(is);
+            Secret secret = Serialization.unmarshal(is, Secret.class);
             assertThat("The Secret was loaded correctly from disk", notNullValue());
             FileCredentialsImpl credential = convertor.convert(secret);
             assertThat(credential, notNullValue());
@@ -110,7 +112,7 @@ public class FileCredentialsConvertorTest {
         FileCredentialsConvertor convertor = new FileCredentialsConvertor();
         
         try (InputStream is = get("missingFilename.yaml")) {
-            Secret secret = Helper.unmarshal(is);
+            Secret secret = Serialization.unmarshal(is, Secret.class);
             convertor.convert(secret);
             fail("Exception should have been thrown");
         } catch (CredentialsConvertionException cex) {
@@ -124,7 +126,7 @@ public class FileCredentialsConvertorTest {
         FileCredentialsConvertor convertor = new FileCredentialsConvertor();
 
         try (InputStream is = get("missingData.yaml")) {
-            Secret secret = Helper.unmarshal(is);
+            Secret secret = Serialization.unmarshal(is, Secret.class);
             convertor.convert(secret);
             fail("Exception should have been thrown");
         } catch (CredentialsConvertionException cex) {
@@ -137,7 +139,7 @@ public class FileCredentialsConvertorTest {
         FileCredentialsConvertor convertor = new FileCredentialsConvertor();
         
         try (InputStream is = get("corruptFilename.yaml")) {
-            Secret secret = Helper.unmarshal(is);
+            Secret secret = Serialization.unmarshal(is, Secret.class);
             convertor.convert(secret);
             fail("Exception should have been thrown");
         } catch (CredentialsConvertionException cex) {
@@ -151,7 +153,7 @@ public class FileCredentialsConvertorTest {
         FileCredentialsConvertor convertor = new FileCredentialsConvertor();
 
         try (InputStream is = get("corruptData.yaml")) {
-            Secret secret = Helper.unmarshal(is);
+            Secret secret = Serialization.unmarshal(is, Secret.class);
             convertor.convert(secret);
             fail("Exception should have been thrown");
         } catch (CredentialsConvertionException cex) {
@@ -164,7 +166,7 @@ public class FileCredentialsConvertorTest {
         FileCredentialsConvertor convertor = new FileCredentialsConvertor();
         
         try (InputStream is = get("void.yaml")) {
-            Secret secret = Helper.unmarshal(is);
+            Secret secret = Serialization.unmarshal(is, Secret.class);
             convertor.convert(secret);
             fail("Exception should have been thrown");
         } catch (CredentialsConvertionException cex) {

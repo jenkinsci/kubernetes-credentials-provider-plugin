@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
 import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,6 +40,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import hudson.util.HistoricalSecrets;
 import jenkins.security.ConfidentialStore;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
+import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors.CertificateCredentialsConvertor;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.impl.CertificateCredentialsImpl;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -79,7 +81,7 @@ public class CertificateCredentialsConvertorTest {
         CertificateCredentialsConvertor convertor = new CertificateCredentialsConvertor();
 
         try (InputStream is = get("valid.yaml")) {
-            Secret secret = Helper.unmarshal(is);
+            Secret secret = Serialization.unmarshal(is, Secret.class);
             assertThat("The Secret was loaded correctly from disk", notNullValue());
             CertificateCredentialsImpl credential = convertor.convert(secret);
             assertThat(credential, notNullValue());
@@ -101,7 +103,7 @@ public class CertificateCredentialsConvertorTest {
         CertificateCredentialsConvertor convertor = new CertificateCredentialsConvertor();
 
         try (InputStream is = get("validMapped.yaml")) {
-            Secret secret = Helper.unmarshal(is);
+            Secret secret = Serialization.unmarshal(is, Secret.class);
             assertThat("The Secret was loaded correctly from disk", notNullValue());
             CertificateCredentialsImpl credential = convertor.convert(secret);
             assertThat(credential, notNullValue());
@@ -123,7 +125,7 @@ public class CertificateCredentialsConvertorTest {
         CertificateCredentialsConvertor convertor = new CertificateCredentialsConvertor();
         
         try (InputStream is = get("missingCertificate.yaml")) {
-            Secret secret = Helper.unmarshal(is);
+            Secret secret = Serialization.unmarshal(is, Secret.class);
             convertor.convert(secret);
             fail("Exception should have been thrown");
         } catch (CredentialsConvertionException cex) {
@@ -137,7 +139,7 @@ public class CertificateCredentialsConvertorTest {
         CertificateCredentialsConvertor convertor = new CertificateCredentialsConvertor();
 
         try (InputStream is = get("missingPassword.yaml")) {
-            Secret secret = Helper.unmarshal(is);
+            Secret secret = Serialization.unmarshal(is, Secret.class);
             convertor.convert(secret);
             fail("Exception should have been thrown");
         } catch (CredentialsConvertionException cex) {
@@ -153,7 +155,7 @@ public class CertificateCredentialsConvertorTest {
         CertificateCredentialsConvertor convertor = new CertificateCredentialsConvertor();
         
         try (InputStream is = get("corruptCertificatePKCS12.yaml")) {
-            Secret secret = Helper.unmarshal(is);
+            Secret secret = Serialization.unmarshal(is, Secret.class);
             convertor.convert(secret);
             fail("Exception should have been thrown");
         } catch (CredentialsConvertionException cex) {
@@ -170,7 +172,7 @@ public class CertificateCredentialsConvertorTest {
         CertificateCredentialsConvertor convertor = new CertificateCredentialsConvertor();
         
         try (InputStream is = get("corruptBase64Certificate.yaml")) {
-            Secret secret = Helper.unmarshal(is);
+            Secret secret = Serialization.unmarshal(is, Secret.class);
             convertor.convert(secret);
             fail("Exception should have been thrown");
         } catch (CredentialsConvertionException cex) {
@@ -183,7 +185,7 @@ public class CertificateCredentialsConvertorTest {
         CertificateCredentialsConvertor convertor = new CertificateCredentialsConvertor();
 
         try (InputStream is = get("corruptPassword.yaml")) {
-            Secret secret = Helper.unmarshal(is);
+            Secret secret = Serialization.unmarshal(is, Secret.class);
             convertor.convert(secret);
             fail("Exception should have been thrown");
         } catch (CredentialsConvertionException cex) {
@@ -197,7 +199,7 @@ public class CertificateCredentialsConvertorTest {
         CertificateCredentialsConvertor convertor = new CertificateCredentialsConvertor();
         
         try (InputStream is = get("void.yaml")) {
-            Secret secret = Helper.unmarshal(is);
+            Secret secret = Serialization.unmarshal(is, Secret.class);
             convertor.convert(secret);
             fail("Exception should have been thrown");
         } catch (CredentialsConvertionException cex) {
