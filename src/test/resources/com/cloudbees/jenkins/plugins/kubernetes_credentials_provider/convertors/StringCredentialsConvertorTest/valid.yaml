@@ -12,4 +12,4 @@ metadata:
 type: Opaque
 data:
 # UTF-8 base64 encoded
-  text: bXlTZWNyZXQh  # MySecret!
+  text: bXlTZWNyZXQh  # mySecret!
