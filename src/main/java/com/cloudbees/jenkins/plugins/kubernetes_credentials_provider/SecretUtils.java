@@ -30,6 +30,7 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Optional;
@@ -114,7 +115,11 @@ public abstract class SecretUtils {
     @CheckForNull
     public static String getCredentialDescription(Secret s) {
         // we must have a metadata as the label that identifies this as a Jenkins credential needs to be present
-        return s.getMetadata().getAnnotations().get(JENKINS_IO_CREDENTIALS_DESCRIPTION_ANNOTATION);
+        Map<String, String> annotations = s.getMetadata().getAnnotations();
+        if (annotations != null) {
+            return annotations.get(JENKINS_IO_CREDENTIALS_DESCRIPTION_ANNOTATION);
+        }
+        return null;
     }
 
     /**
@@ -200,11 +205,22 @@ public abstract class SecretUtils {
      * @return the custom mapping for the key or {@code key} (identical object) if there is no custom mapping.
      */
     public static String getKeyName(Secret s, String key) {
-        String customMapping = s.getMetadata().getAnnotations().get(JENKINS_IO_CREDENTIALS_KEYBINDING_ANNOTATION_PREFIX + key);
-        if (customMapping != null && customMapping.length() > 0) {
+        Map<String, String> annotations = s.getMetadata().getAnnotations();
+        if (annotations != null){
+            final String annotationName = JENKINS_IO_CREDENTIALS_KEYBINDING_ANNOTATION_PREFIX + key;
+            String customMapping = annotations.get(annotationName);
+            if (customMapping == null) {
+                // no entry
+                return key;
+            }
+            if (customMapping.isEmpty()){
+                LOG.log(Level.WARNING, "Secret {0} contains a mapping annotation {1} but has no entry - mapping will "
+                                       + "not be performed",
+                        new Object[] {s.getMetadata().getName(), annotationName});
+                return key;
+            }
             return customMapping;
         }
         return key;
     }
-
 }

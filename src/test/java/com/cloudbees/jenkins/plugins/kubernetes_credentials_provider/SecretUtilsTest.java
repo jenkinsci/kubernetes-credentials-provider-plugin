@@ -218,4 +218,15 @@ public class SecretUtilsTest {
         Secret s = new SecretBuilder().withNewMetadata().endMetadata().addToData(keyexists, datum).build();
         assertThat(SecretUtils.getOptionalSecretData(s, keydoesnotexist, "ignored"), is(emptyOpt));
     }
+
+    @Test
+    public void getOptionalSecretDataWithAnnotations() throws CredentialsConvertionException {
+        String key = "a-key";
+        String map = "not-the-key";
+        String datum = "some-data";
+        Optional<String> optdatum = Optional.empty();
+        Secret s = new SecretBuilder().withNewMetadata().endMetadata().addToData(map, datum).build();
+        s.getMetadata().setAnnotations(null);
+        assertThat(SecretUtils.getOptionalSecretData(s, key, "no_error"), is(optdatum));
+    }
 }
