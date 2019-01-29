@@ -202,11 +202,20 @@ public abstract class SecretUtils {
      */
     public static String getKeyName(Secret s, String key) {
         Map<String, String> annotations = s.getMetadata().getAnnotations();
-        if (annotations != null && annotations.size() > 0){
-            String customMapping = s.getMetadata().getAnnotations().get(JENKINS_IO_CREDENTIALS_KEYBINDING_ANNOTATION_PREFIX + key);
-            if (customMapping != null && customMapping.length() > 0) {
-                return customMapping;
+        if (annotations != null){
+            final String annotationName = JENKINS_IO_CREDENTIALS_KEYBINDING_ANNOTATION_PREFIX + key;
+            String customMapping = annotations.get(annotationName);
+            if (customMapping == null) {
+                // no entry
+                return key;
             }
+            if (customMapping.isEmpty()){
+                LOG.log(Level.WARNING, "Secret {0} contains a mapping annotation {1} but has no entry - mapping will "
+                                       + "not be performed",
+                        new Object[] {s.getMetadata().getName(), annotationName});
+                return key;
+            }
+            return customMapping;
         }
         return key;
     }
