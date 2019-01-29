@@ -27,6 +27,8 @@ import java.io.InputStream;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.Test;
+import org.jvnet.hudson.test.Issue;
+
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors.UsernamePasswordCredentialsConvertor;
 import com.cloudbees.plugins.credentials.CredentialsScope;
@@ -34,6 +36,8 @@ import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.Matchers.emptyString;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
@@ -78,6 +82,24 @@ public class UsernamePasswordCredentialsConvertorTest {
             assertThat(credential, notNullValue());
             assertThat("credential id is mapped correctly", credential.getId(), is("a-test-usernamepass"));
             assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+            assertThat("credential username is mapped correctly", credential.getUsername(), is("myUsername"));
+            assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("Pa$$word"));
+        }
+    }
+
+    @Issue("JENKINS-54313")
+    @Test
+    public void canConvertAValidSecretWithNoDescription() throws Exception {
+        UsernamePasswordCredentialsConvertor convertor = new UsernamePasswordCredentialsConvertor();
+
+        try (InputStream is = get("valid-no-desc.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            assertThat("The Secret was loaded correctly from disk", notNullValue());
+            UsernamePasswordCredentialsImpl credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-usernamepass"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is(emptyString()));
             assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
             assertThat("credential username is mapped correctly", credential.getUsername(), is("myUsername"));
             assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("Pa$$word"));
@@ -152,6 +174,7 @@ public class UsernamePasswordCredentialsConvertorTest {
             assertThat(cex.getMessage(), containsString("contains no data"));
         }
     }
+
 
     private static final InputStream get(String resource) {
         InputStream is = UsernamePasswordCredentialsConvertorTest.class.getResourceAsStream("UsernamePasswordCredentialsConvertorTest/" + resource);
