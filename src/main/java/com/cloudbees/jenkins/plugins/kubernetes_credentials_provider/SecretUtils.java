@@ -115,7 +115,11 @@ public abstract class SecretUtils {
     @CheckForNull
     public static String getCredentialDescription(Secret s) {
         // we must have a metadata as the label that identifies this as a Jenkins credential needs to be present
-        return s.getMetadata().getAnnotations().get(JENKINS_IO_CREDENTIALS_DESCRIPTION_ANNOTATION);
+        Map<String, String> annotations = s.getMetadata().getAnnotations();
+        if (annotations != null) {
+            return annotations.get(JENKINS_IO_CREDENTIALS_DESCRIPTION_ANNOTATION);
+        }
+        return null;
     }
 
     /**
