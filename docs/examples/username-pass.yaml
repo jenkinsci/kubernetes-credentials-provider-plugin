@@ -11,5 +11,5 @@ metadata:
     "jenkins.io/credentials-description" : "credentials from Kubernetes"
 type: Opaque
 stringData:
-  user: myUsername
-  pass: 'Pa$$word'
+  username: myUsername
+  password: 'Pa$$word'
