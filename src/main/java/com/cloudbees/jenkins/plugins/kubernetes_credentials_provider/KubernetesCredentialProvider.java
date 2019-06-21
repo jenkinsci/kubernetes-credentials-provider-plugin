@@ -29,8 +29,11 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.cloudbees.plugins.credentials.SystemCredentialsProvider;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import hudson.ExtensionList;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.Config;
@@ -144,6 +147,15 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
     private final @NonNull <T> List<T> emptyList() {
         // just a separate method to avoid having to suppress "null" for the entirety of getCredentials
         return Collections.emptyList();
+    }
+
+    /**
+     * Gets the singleton instance.
+     *
+     * @return the singleton instance.
+     */
+    public static KubernetesCredentialProvider getInstance() {
+        return ExtensionList.lookup(KubernetesCredentialProvider.class).get(KubernetesCredentialProvider.class);
     }
 
     @Override
