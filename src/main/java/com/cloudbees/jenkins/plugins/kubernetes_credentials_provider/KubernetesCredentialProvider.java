@@ -153,7 +153,7 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
      * @return the singleton instance.
      */
     public static KubernetesCredentialProvider getInstance() {
-        return ExtensionList.lookup(KubernetesCredentialProvider.class).get(KubernetesCredentialProvider.class);
+        return ExtensionList.lookupSingleton(KubernetesCredentialProvider.class);
     }
 
     @Override
