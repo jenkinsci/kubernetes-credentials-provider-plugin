@@ -54,12 +54,15 @@ public abstract class SecretUtils {
 
     /** Annotation prefix for the optional custom mapping of data */
     private static final String JENKINS_IO_CREDENTIALS_KEYBINDING_ANNOTATION_PREFIX = "jenkins.io/credentials-keybinding-";
-    
+
     static final String JENKINS_IO_CREDENTIALS_TYPE_LABEL = "jenkins.io/credentials-type";
+
+    static final String JENKINS_IO_CREDENTIALS_ID_ANNOTATION = "jenkins.io/credentials-id";
+
 
 
     /**
-     * Convert a String representation of the base64 encoded bytes of a UTF-8 String back to a String. 
+     * Convert a String representation of the base64 encoded bytes of a UTF-8 String back to a String.
      * @param s the base64 encoded String representation of the bytes.
      * @return the String or {@code null} if the string could not be converted.
      */
@@ -82,7 +85,7 @@ public abstract class SecretUtils {
     }
 
     /**
-     * Convert a String representation of the base64 encoded bytes back to a byte[]. 
+     * Convert a String representation of the base64 encoded bytes back to a byte[].
      * @param s the base64 encoded representation of the bytes.
      * @return the byte[] or {@code null} if the string could not be converted.
      */
@@ -104,6 +107,10 @@ public abstract class SecretUtils {
      */
     public static String getCredentialId(Secret s) {
         // we must have a metadata as the label that identifies this as a Jenkins credential needs to be present
+        Map<String, String> annotations = s.getMetadata().getAnnotations();
+        if (annotations != null && annotations.get(JENKINS_IO_CREDENTIALS_ID_ANNOTATION) != null) {
+            return annotations.get(JENKINS_IO_CREDENTIALS_ID_ANNOTATION);
+        }
         return s.getMetadata().getName();
     }
 
@@ -156,11 +163,11 @@ public abstract class SecretUtils {
         return obj;
     }
 
-    
+
     /**
      * Get the data for the specified key (or the mapped key if key is mapped), or throw a
      * CredentialsConvertionException if the data for the given key was not present..
-     * 
+     *
      * @param s the Secret
      * @param key the key to get the data for (which may be mapped to another key).
      * @param exceptionMessage the detailMessage of the exception if the data for the key (or mapped key) was not
@@ -199,7 +206,7 @@ public abstract class SecretUtils {
      * Get the mapping for the specified key name. Secrets can override the defaults used by the plugin by specifying an
      * attribute of the type {@code jenkins.io/credentials-keybinding-name} containing the custom name - for example
      * {@code jenkins.io/credentials-keybinding-foo=wibble}.
-     * 
+     *
      * @param s the secret to inspect for a custom name.
      * @param key the name of the key we are looking for.
      * @return the custom mapping for the key or {@code key} (identical object) if there is no custom mapping.
@@ -215,7 +222,7 @@ public abstract class SecretUtils {
             }
             if (customMapping.isEmpty()){
                 LOG.log(Level.WARNING, "Secret {0} contains a mapping annotation {1} but has no entry - mapping will "
-                                       + "not be performed",
+                                + "not be performed",
                         new Object[] {s.getMetadata().getName(), annotationName});
                 return key;
             }

@@ -24,9 +24,8 @@
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-import java.util.Collections;
-import java.util.Optional;
+import java.util.*;
+
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.junit.Test;
@@ -75,6 +74,15 @@ public class SecretUtilsTest {
         final String testName = "a-test-name";
         Secret s = new SecretBuilder().withNewMetadata().withName(testName).endMetadata().build();
         assertThat(SecretUtils.getCredentialId(s), is(testName));
+    }
+
+    @Test
+    public void getCredentialIdFromAnnotated() {
+        final String testCredId = "a-test-annotation-credId";
+        Secret s = new SecretBuilder().withNewMetadata().
+                withAnnotations(Collections.singletonMap(SecretUtils.JENKINS_IO_CREDENTIALS_ID_ANNOTATION, testCredId)).endMetadata().
+                build();
+        assertThat(SecretUtils.getCredentialId(s), is(testCredId));
     }
 
     @Test
