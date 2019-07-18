@@ -24,7 +24,9 @@
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.Optional;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
