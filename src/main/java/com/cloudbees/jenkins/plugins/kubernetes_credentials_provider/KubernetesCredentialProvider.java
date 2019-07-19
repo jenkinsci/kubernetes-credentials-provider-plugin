@@ -31,6 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.Config;
@@ -72,6 +73,12 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
 
     private KubernetesCredentialsStore store = new KubernetesCredentialsStore(this);
 
+    /**
+     * Kubernetes <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors">label selector</a> expression
+     * for matching secrets to manage.
+     */
+    private String labelSelector = System.getProperty(KubernetesCredentialProvider.class.getName() + ".labelSelector");
+
     @Initializer(after=InitMilestone.PLUGINS_PREPARED, fatal=false)
     @Restricted(NoExternalUse.class) // only for callbacks from Jenkins
     public void startWatchingForSecrets() {
@@ -80,8 +87,9 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
             Config config = cb.build();
             DefaultKubernetesClient _client = new DefaultKubernetesClient(config);
             LOG.log(Level.FINER, "Using namespace: {0}", _client.getNamespace());
-            LOG.log(Level.FINER, "retreiving secrets");
-            SecretList list = _client.secrets().withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).list();
+            LOG.log(Level.INFO, "retrieving secrets with selector: {0}, {1}", new String[]{SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL, labelSelector});
+            LabelSelector selector = LabelSelectorExpressions.parse(labelSelector);
+            SecretList list = _client.secrets().withLabelSelector(selector).withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).list();
 
             List<Secret> secretList = list.getItems();
             ConcurrentHashMap<String, IdCredentials> _credentials = new  ConcurrentHashMap<>();
@@ -98,7 +106,7 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
             // watch(resourceVersion, watcher) is deprecated but there is nothing to say why?
             client = _client;
             LOG.log(Level.FINER, "registering watch");
-            watch = _client.secrets().withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).watch(list.getMetadata().getResourceVersion(), this);
+            watch = _client.secrets().withLabelSelector(selector).withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).watch(list.getMetadata().getResourceVersion(), this);
             LOG.log(Level.FINER, "registered watch, retrieving secrets");
         } catch (KubernetesClientException kex) {
             LOG.log(Level.SEVERE, "Failed to initialise k8s secret provider, secrets from Kubernetes will not be available", kex);
@@ -203,7 +211,7 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
                 return null;
             }
         }
-        LOG.log(Level.WARNING, "No SecretToCredentialConveror found to convert secrets of type {0}", type);
+        LOG.log(Level.WARNING, "No SecretToCredentialConverter found to convert secrets of type {0}", type);
         return null;
     }
 
