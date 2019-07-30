@@ -26,12 +26,15 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import hudson.util.AdministrativeError;
 import io.fabric8.kubernetes.api.model.LabelSelector;
+import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.Config;
@@ -86,9 +89,9 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
             ConfigBuilder cb = new ConfigBuilder();
             Config config = cb.build();
             DefaultKubernetesClient _client = new DefaultKubernetesClient(config);
-            LOG.log(Level.FINER, "Using namespace: {0}", _client.getNamespace());
-            LOG.log(Level.INFO, "retrieving secrets with selector: {0}, {1}", new String[]{SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL, labelSelector});
             LabelSelector selector = LabelSelectorExpressions.parse(labelSelector);
+            LOG.log(Level.FINER, "Using namespace: {0}", _client.getNamespace());
+            LOG.log(Level.INFO, "retrieving secrets with selector: {0}, {1}", new String[]{SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL, Objects.toString(selector)});
             SecretList list = _client.secrets().withLabelSelector(selector).withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).list();
 
             List<Secret> secretList = list.getItems();
@@ -111,6 +114,12 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
         } catch (KubernetesClientException kex) {
             LOG.log(Level.SEVERE, "Failed to initialise k8s secret provider, secrets from Kubernetes will not be available", kex);
             // TODO add an administrative warning to report this clearly to the admin
+        } catch (LabelSelectorParseException lex) {
+            LOG.log(Level.SEVERE, "Failed to initialise k8s secret provider, secrets from Kubernetes will not be available", lex);
+            new AdministrativeError(getClass() + ".labelSelector",
+                    "Failed to parse Kubernetes secret label selector",
+                    "Failed to parse Kubernetes secret <a href=\"https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors\" _target=\"blank\">label selector</a> " +
+                            "expression \"<code>" + labelSelector + "</code>\". Secrets from Kubernetes will not be available. ", lex);
         }
     }
 

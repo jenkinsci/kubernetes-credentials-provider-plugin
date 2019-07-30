@@ -1,7 +1,10 @@
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
+import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
 import io.fabric8.kubernetes.api.model.LabelSelector;
@@ -20,9 +23,9 @@ class LabelSelectorExpressions {
      * </pre>
      * @param selector label selector expression or null
      * @return parsed label selector
+     * @throws LabelSelectorParseException when invalid selector expression
      */
-    @NonNull
-    static LabelSelector parse(String selector) {
+    static LabelSelector parse(@Nullable String selector) throws LabelSelectorParseException {
         LabelSelectorBuilder lsb = new LabelSelectorBuilder();
         if (selector != null && !selector.trim().isEmpty()) {
             Matcher matcher = Pattern.compile("[^,]+?\\([^()]+\\)|[^,]+").matcher(selector);
@@ -43,9 +46,6 @@ class LabelSelectorExpressions {
                                     .withOperator("Exists")
                                     .endMatchExpression();
                         }
-                        break;
-                    case 2:
-                        // not valid
                         break;
                     case 3:
                         String operator = tokens[1];
@@ -69,8 +69,12 @@ class LabelSelectorExpressions {
                                     .withOperator("In")
                                     .withValues(values(tokens[2]))
                                     .endMatchExpression();
+                        } else {
+                            throw new LabelSelectorParseException("Unrecognized selector operator '" + operator + "' in expression '" + expression + "'. Expected one of: =, !=, in, notin");
                         }
                         break;
+                    default:
+                        throw new LabelSelectorParseException("Invalid selector expression '" + expression + "'. Expected 1 or 3 tokens, got " + tokens.length + ": " + Arrays.toString(tokens));
                 }
             }
         }
