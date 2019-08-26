@@ -29,8 +29,13 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import hudson.ExtensionList;
+import hudson.model.AdministrativeMonitor;
+import hudson.util.AdministrativeError;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.Config;
@@ -41,6 +46,7 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import org.acegisecurity.Authentication;
+import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import hudson.Extension;
@@ -72,14 +78,22 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
 
     private KubernetesCredentialsStore store = new KubernetesCredentialsStore(this);
 
+    KubernetesClient getKubernetesClient() {
+        if (client == null) {
+            ConfigBuilder cb = new ConfigBuilder();
+            Config config = cb.build();
+            client = new DefaultKubernetesClient(config);
+        }
+        return client;
+    }
+
     @Initializer(after=InitMilestone.PLUGINS_PREPARED, fatal=false)
     @Restricted(NoExternalUse.class) // only for callbacks from Jenkins
     public void startWatchingForSecrets() {
+        final String initAdminMonitorId = getClass().getName() + ".initialize";
         try {
-            ConfigBuilder cb = new ConfigBuilder();
-            Config config = cb.build();
-            DefaultKubernetesClient _client = new DefaultKubernetesClient(config);
-            LOG.log(Level.FINER, "Using namespace: {0}", _client.getNamespace());
+            KubernetesClient _client = getKubernetesClient();
+            LOG.log(Level.FINER, "Using namespace: {0}", String.valueOf(_client.getNamespace()));
             LOG.log(Level.FINER, "retreiving secrets");
             SecretList list = _client.secrets().withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).list();
 
@@ -96,16 +110,24 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
 
             // XXX https://github.com/fabric8io/kubernetes-client/issues/1014
             // watch(resourceVersion, watcher) is deprecated but there is nothing to say why?
-            client = _client;
             LOG.log(Level.FINER, "registering watch");
-            watch = _client.secrets().withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).watch(list.getMetadata().getResourceVersion(), this);
+            watch = _client.secrets().withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).watch(this);
             LOG.log(Level.FINER, "registered watch, retrieving secrets");
+            // successfully initialized, clear any previous monitors
+            clearAdminMonitors(initAdminMonitorId);
         } catch (KubernetesClientException kex) {
             LOG.log(Level.SEVERE, "Failed to initialise k8s secret provider, secrets from Kubernetes will not be available", kex);
-            // TODO add an administrative warning to report this clearly to the admin
+            new AdministrativeError(initAdminMonitorId,
+                    "Failed to initialize Kubernetes secret provider",
+                    "Credentials from Kubernetes Secrets will not be available.", kex);
         }
     }
 
+    private void clearAdminMonitors(String id) {
+        ExtensionList<AdministrativeMonitor> all = AdministrativeMonitor.all();
+        List<AdministrativeMonitor> toRemove = all.stream().filter(am -> StringUtils.equals(id, am.id)).collect(Collectors.toList());
+        all.removeAll(toRemove);
+    }
 
     @Terminator(after=TermMilestone.STARTED)
     @Restricted(NoExternalUse.class) // only for callbacks from Jenkins
@@ -132,8 +154,9 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
                     LOG.log(Level.FINEST, "getCredentials {0} matches, adding to list", credential.getId());
                     // cast to keep generics happy even though we are assignable..
                     list.add(type.cast(credential));
+                } else {
+                    LOG.log(Level.FINEST, "getCredentials {0} does not match", credential.getId());
                 }
-                LOG.log(Level.FINEST, "getCredentials {0} does not match", credential.getId());
             }
             return list;
         }
@@ -179,8 +202,13 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
 
     @Override
     public void onClose(KubernetesClientException cause) {
-        // TODO reconnect?
-        LOG.log(Level.INFO, "onClose.", cause);
+        if (cause != null) {
+            LOG.log(Level.WARNING, "Secrets watch stopped unexpectedly", cause);
+            LOG.log(Level.INFO, "Restating secrets watcher");
+            startWatchingForSecrets();
+        } else {
+            LOG.log(Level.INFO, "Secrets watcher stopped");
+        }
     }
 
 
@@ -203,7 +231,7 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
                 return null;
             }
         }
-        LOG.log(Level.WARNING, "No SecretToCredentialConveror found to convert secrets of type {0}", type);
+        LOG.log(Level.WARNING, "No SecretToCredentialConverter found to convert secrets of type {0}", type);
         return null;
     }
 

@@ -48,6 +48,7 @@
     <java.level>8</java.level>
     <!--  override crappy OSS default -->
     <surefire.rerunFailingTestsCount>0</surefire.rerunFailingTestsCount>
+    <kubernetes.client.version>4.1.3</kubernetes.client.version>
   </properties>
 
   <scm>
@@ -120,7 +121,7 @@
       <dependency>
         <groupId>io.fabric8</groupId>
         <artifactId>kubernetes-client</artifactId>
-        <version>4.1.3</version>
+        <version>${kubernetes.client.version}</version>
         <exclusions>
           <exclusion>
             <groupId>org.slf4j</groupId>
@@ -227,6 +228,21 @@
       <groupId>org.powermock</groupId>
       <artifactId>powermock-api-mockito2</artifactId>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-server-mock</artifactId>
+      <version>${kubernetes.client.version}</version>
+      <scope>test</scope>
+      <exclusions>
+        <!-- fails maven enforcer because kubernetes-client has a different version
+              -> Require upper bound dependencies error for com.squareup.okhttp3:okhttp:3.12.0
+        -->
+        <exclusion>
+          <groupId>com.squareup.okhttp3</groupId>
+          <artifactId>okhttp</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <!-- static analysis -->
