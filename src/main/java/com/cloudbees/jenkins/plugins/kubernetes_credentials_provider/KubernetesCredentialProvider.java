@@ -94,25 +94,23 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
         try {
             KubernetesClient _client = getKubernetesClient();
             LOG.log(Level.FINER, "Using namespace: {0}", String.valueOf(_client.getNamespace()));
-            LOG.log(Level.FINER, "retreiving secrets");
-            SecretList list = _client.secrets().withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).list();
 
-            List<Secret> secretList = list.getItems();
-            ConcurrentHashMap<String, IdCredentials> _credentials = new  ConcurrentHashMap<>();
-            for (Secret s : secretList) {
-                LOG.log(Level.FINE, "Secret Added - {0}", SecretUtils.getCredentialId(s));
-                IdCredentials cred = convertSecret(s);
-                if (cred != null) {
-                    _credentials.put(SecretUtils.getCredentialId(s), cred);
-                }
-            }
-            credentials = _credentials;
-
-            // XXX https://github.com/fabric8io/kubernetes-client/issues/1014
-            // watch(resourceVersion, watcher) is deprecated but there is nothing to say why?
+            // start watching new secrets before we list the current set of secrets so we don't miss any events
             LOG.log(Level.FINER, "registering watch");
             watch = _client.secrets().withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).watch(this);
             LOG.log(Level.FINER, "registered watch, retrieving secrets");
+
+            // load current set of secrets into provider
+            LOG.log(Level.FINER, "retrieving secrets");
+            SecretList list = _client.secrets().withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).list();
+            // reset credentials to the latest full listing
+            credentials.clear();
+            List<Secret> secretList = list.getItems();
+            for (Secret s : secretList) {
+                LOG.log(Level.FINE, "Secret Added - {0}", SecretUtils.getCredentialId(s));
+                addSecret(s);
+            }
+
             // successfully initialized, clear any previous monitors
             clearAdminMonitors(initAdminMonitorId);
         } catch (KubernetesClientException kex) {
@@ -169,24 +167,25 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
         return Collections.emptyList();
     }
 
+    private void addSecret(Secret secret) {
+        IdCredentials cred = convertSecret(secret);
+        if (cred != null) {
+            credentials.put(SecretUtils.getCredentialId(secret), cred);
+        }
+    }
+
     @Override
     public void eventReceived(Action action, Secret secret) {
         String credentialId = SecretUtils.getCredentialId(secret);
         switch (action) {
             case ADDED: {
                 LOG.log(Level.FINE, "Secret Added - {0}", credentialId);
-                IdCredentials cred = convertSecret(secret);
-                if (cred != null) {
-                    credentials.put(credentialId, cred);
-                }
+                addSecret(secret);
                 break;
             }
             case MODIFIED: {
                 LOG.log(Level.FINE, "Secret Modified - {0}", credentialId);
-                IdCredentials cred = convertSecret(secret);
-                if (cred != null) {
-                    credentials.put(credentialId, cred);
-                }
+                addSecret(secret);
                 break;
             }
             case DELETED: {
