@@ -242,6 +242,14 @@
           <groupId>com.squareup.okhttp3</groupId>
           <artifactId>okhttp</artifactId>
         </exclusion>
+        <!--
+          this dependency causes a build error on windows machines due to a bad system path reference in
+          the sundr-codegen pom. luckily the tests in this plugin don't require these dependencies.
+        -->
+        <exclusion>
+          <groupId>io.sundr</groupId>
+          <artifactId>builder-annotations</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
 
