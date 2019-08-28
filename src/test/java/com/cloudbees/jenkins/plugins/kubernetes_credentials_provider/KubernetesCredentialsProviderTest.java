@@ -50,9 +50,13 @@ public class KubernetesCredentialsProviderTest {
 
     private void defaultMockKubernetesResponses() {
         server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type")
-                .andReturn(200, new SecretListBuilder().build()).always();
-        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type&watch=true")
-                .andReturn(200, new EventListBuilder().build()).always();
+                .andReturn(200, new SecretListBuilder()
+                        .withNewMetadata()
+                        .withResourceVersion("1")
+                        .endMetadata()
+                        .build()).always();
+        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type&resourceVersion=1&watch=true")
+                .andReturn(200, null).always();
     }
 
     @Test
@@ -64,6 +68,9 @@ public class KubernetesCredentialsProviderTest {
         // returns s1 and s3, the credentials map should be reset to this list
         server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type")
                 .andReturn(200, new SecretListBuilder()
+                        .withNewMetadata()
+                        .withResourceVersion("1")
+                        .endMetadata()
                         .addToItems(s1, s3)
                         .build())
                 .once();

@@ -26,6 +26,7 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -95,21 +96,23 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
             KubernetesClient _client = getKubernetesClient();
             LOG.log(Level.FINER, "Using namespace: {0}", String.valueOf(_client.getNamespace()));
 
-            // start watching new secrets before we list the current set of secrets so we don't miss any events
-            LOG.log(Level.FINER, "registering watch");
-            watch = _client.secrets().withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).watch(this);
-            LOG.log(Level.FINER, "registered watch, retrieving secrets");
-
             // load current set of secrets into provider
             LOG.log(Level.FINER, "retrieving secrets");
             SecretList list = _client.secrets().withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).list();
-            // reset credentials to the latest full listing
-            credentials.clear();
+            ConcurrentHashMap<String, IdCredentials> _credentials = new  ConcurrentHashMap<>();
             List<Secret> secretList = list.getItems();
             for (Secret s : secretList) {
                 LOG.log(Level.FINE, "Secret Added - {0}", SecretUtils.getCredentialId(s));
-                addSecret(s);
+                addSecret(s, _credentials);
             }
+            credentials = _credentials;
+
+            // start watching new secrets before we list the current set of secrets so we don't miss any events
+            LOG.log(Level.FINER, "registering watch");
+            // XXX https://github.com/fabric8io/kubernetes-client/issues/1014
+            // watch(resourceVersion, watcher) is deprecated but there is nothing to say why?
+            watch = _client.secrets().withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).watch(list.getMetadata().getResourceVersion(), this);
+            LOG.log(Level.FINER, "registered watch, retrieving secrets");
 
             // successfully initialized, clear any previous monitors
             clearAdminMonitors(initAdminMonitorId);
@@ -168,9 +171,13 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
     }
 
     private void addSecret(Secret secret) {
+        addSecret(secret, credentials);
+    }
+
+    private void addSecret(Secret secret, Map<String, IdCredentials> map) {
         IdCredentials cred = convertSecret(secret);
         if (cred != null) {
-            credentials.put(SecretUtils.getCredentialId(secret), cred);
+            map.put(SecretUtils.getCredentialId(secret), cred);
         }
     }
 
