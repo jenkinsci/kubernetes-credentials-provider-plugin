@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>3.21</version>
+    <version>3.49</version>
     <relativePath />
   </parent>
 
@@ -44,10 +44,12 @@
   <properties>
     <revision>0.13</revision>
     <changelist>-SNAPSHOT</changelist>
-    <jenkins.version>2.89</jenkins.version>
+    <jenkins.version>2.176.1</jenkins.version>
     <java.level>8</java.level>
     <!--  override crappy OSS default -->
     <surefire.rerunFailingTestsCount>0</surefire.rerunFailingTestsCount>
+    <kubernetes-client-api.version>1.0.0</kubernetes-client-api.version>
+    <slf4jVersion>1.7.26</slf4jVersion>
   </properties>
 
   <scm>
@@ -88,11 +90,6 @@
         <version>1.17</version>
       </dependency>
       <dependency>
-        <groupId>com.fasterxml.jackson.module</groupId>
-        <artifactId>jackson-module-jaxb-annotations</artifactId>
-        <version>2.9.8</version>
-      </dependency>
-      <dependency>
         <groupId>org.jenkins-ci.plugins.workflow</groupId>
         <artifactId>workflow-step-api</artifactId>
         <version>2.14</version>
@@ -116,17 +113,6 @@
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>variant</artifactId>
         <version>1.1</version>
-      </dependency>
-      <dependency>
-        <groupId>io.fabric8</groupId>
-        <artifactId>kubernetes-client</artifactId>
-        <version>4.1.3</version>
-        <exclusions>
-          <exclusion>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jul-to-slf4j</artifactId>
-          </exclusion>
-        </exclusions>
       </dependency>
       <dependency>
         <groupId>junit</groupId>
@@ -174,6 +160,11 @@
   <dependencies>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>kubernetes-client-api</artifactId>
+      <version>${kubernetes-client-api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>credentials</artifactId>
     </dependency>
     <dependency>
@@ -193,10 +184,6 @@
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>ssh-credentials</artifactId>
       <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>kubernetes-client</artifactId>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
