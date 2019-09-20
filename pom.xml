@@ -218,7 +218,7 @@
     <dependency>
       <groupId>io.fabric8</groupId>
       <artifactId>kubernetes-server-mock</artifactId>
-      <version>${kubernetes.client.version}</version>
+      <version>4.4.2</version>
       <scope>test</scope>
       <exclusions>
         <!-- fails maven enforcer because kubernetes-client has a different version
