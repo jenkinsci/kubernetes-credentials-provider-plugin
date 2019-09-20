@@ -1,1 +1,1 @@
-buildPlugin(failFast:false, findbugs: [archive: true])
+buildPlugin(failFast:false, findbugs: [archive: true,unstableTotalAll: '0'])

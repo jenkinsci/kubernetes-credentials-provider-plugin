@@ -23,18 +23,18 @@
  */
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
+
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
+import hudson.ExtensionList;
+import hudson.model.AdministrativeMonitor;
 import hudson.util.AdministrativeError;
 import io.fabric8.kubernetes.api.model.LabelSelector;
-import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.Config;
@@ -80,49 +80,69 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
      * Kubernetes <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors">label selector</a> expression
      * for matching secrets to manage.
      */
-    private String labelSelector = System.getProperty(KubernetesCredentialProvider.class.getName() + ".labelSelector");
+    static final String LABEL_SELECTOR = KubernetesCredentialProvider.class.getName() + ".labelSelector";
+
+    KubernetesClient getKubernetesClient() {
+        if (client == null) {
+            ConfigBuilder cb = new ConfigBuilder();
+            Config config = cb.build();
+            client = new DefaultKubernetesClient(config);
+        }
+        return client;
+    }
 
     @Initializer(after=InitMilestone.PLUGINS_PREPARED, fatal=false)
     @Restricted(NoExternalUse.class) // only for callbacks from Jenkins
     public void startWatchingForSecrets() {
+        final String initAdminMonitorId = getClass().getName() + ".initialize";
+        final String labelSelectorAdminMonitorId = getClass().getName() + ".labelSelector";
+        String labelSelector = System.getProperty(LABEL_SELECTOR);
         try {
-            ConfigBuilder cb = new ConfigBuilder();
-            Config config = cb.build();
-            DefaultKubernetesClient _client = new DefaultKubernetesClient(config);
+            KubernetesClient _client = getKubernetesClient();
+            LOG.log(Level.FINER, "Using namespace: {0}", String.valueOf(_client.getNamespace()));
             LabelSelector selector = LabelSelectorExpressions.parse(labelSelector);
-            LOG.log(Level.FINER, "Using namespace: {0}", _client.getNamespace());
             LOG.log(Level.INFO, "retrieving secrets with selector: {0}, {1}", new String[]{SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL, Objects.toString(selector)});
-            SecretList list = _client.secrets().withLabelSelector(selector).withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).list();
 
-            List<Secret> secretList = list.getItems();
+            // load current set of secrets into provider
+            LOG.log(Level.FINER, "retrieving secrets");
+            SecretList list = _client.secrets().withLabelSelector(selector).withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).list();
             ConcurrentHashMap<String, IdCredentials> _credentials = new  ConcurrentHashMap<>();
+            List<Secret> secretList = list.getItems();
             for (Secret s : secretList) {
                 LOG.log(Level.FINE, "Secret Added - {0}", SecretUtils.getCredentialId(s));
-                IdCredentials cred = convertSecret(s);
-                if (cred != null) {
-                    _credentials.put(SecretUtils.getCredentialId(s), cred);
-                }
+                addSecret(s, _credentials);
             }
             credentials = _credentials;
 
+            // start watching new secrets before we list the current set of secrets so we don't miss any events
+            LOG.log(Level.FINER, "registering watch");
             // XXX https://github.com/fabric8io/kubernetes-client/issues/1014
             // watch(resourceVersion, watcher) is deprecated but there is nothing to say why?
-            client = _client;
-            LOG.log(Level.FINER, "registering watch");
             watch = _client.secrets().withLabelSelector(selector).withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).watch(list.getMetadata().getResourceVersion(), this);
             LOG.log(Level.FINER, "registered watch, retrieving secrets");
+
+            // successfully initialized, clear any previous monitors
+            clearAdminMonitors(initAdminMonitorId, labelSelectorAdminMonitorId);
         } catch (KubernetesClientException kex) {
             LOG.log(Level.SEVERE, "Failed to initialise k8s secret provider, secrets from Kubernetes will not be available", kex);
-            // TODO add an administrative warning to report this clearly to the admin
+            new AdministrativeError(initAdminMonitorId,
+                    "Failed to initialize Kubernetes secret provider",
+                    "Credentials from Kubernetes Secrets will not be available.", kex);
         } catch (LabelSelectorParseException lex) {
             LOG.log(Level.SEVERE, "Failed to initialise k8s secret provider, secrets from Kubernetes will not be available", lex);
-            new AdministrativeError(getClass() + ".labelSelector",
+            new AdministrativeError(labelSelectorAdminMonitorId,
                     "Failed to parse Kubernetes secret label selector",
                     "Failed to parse Kubernetes secret <a href=\"https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors\" _target=\"blank\">label selector</a> " +
                             "expression \"<code>" + labelSelector + "</code>\". Secrets from Kubernetes will not be available. ", lex);
         }
     }
 
+    private void clearAdminMonitors(String... ids) {
+        Collection<String> monitorIds = Arrays.asList(ids);
+        ExtensionList<AdministrativeMonitor> all = AdministrativeMonitor.all();
+        List<AdministrativeMonitor> toRemove = all.stream().filter(am -> monitorIds.contains(am.id)).collect(Collectors.toList());
+        all.removeAll(toRemove);
+    }
 
     @Terminator(after=TermMilestone.STARTED)
     @Restricted(NoExternalUse.class) // only for callbacks from Jenkins
@@ -149,8 +169,9 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
                     LOG.log(Level.FINEST, "getCredentials {0} matches, adding to list", credential.getId());
                     // cast to keep generics happy even though we are assignable..
                     list.add(type.cast(credential));
+                } else {
+                    LOG.log(Level.FINEST, "getCredentials {0} does not match", credential.getId());
                 }
-                LOG.log(Level.FINEST, "getCredentials {0} does not match", credential.getId());
             }
             return list;
         }
@@ -163,24 +184,29 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
         return Collections.emptyList();
     }
 
+    private void addSecret(Secret secret) {
+        addSecret(secret, credentials);
+    }
+
+    private void addSecret(Secret secret, Map<String, IdCredentials> map) {
+        IdCredentials cred = convertSecret(secret);
+        if (cred != null) {
+            map.put(SecretUtils.getCredentialId(secret), cred);
+        }
+    }
+
     @Override
     public void eventReceived(Action action, Secret secret) {
         String credentialId = SecretUtils.getCredentialId(secret);
         switch (action) {
             case ADDED: {
                 LOG.log(Level.FINE, "Secret Added - {0}", credentialId);
-                IdCredentials cred = convertSecret(secret);
-                if (cred != null) {
-                    credentials.put(credentialId, cred);
-                }
+                addSecret(secret);
                 break;
             }
             case MODIFIED: {
                 LOG.log(Level.FINE, "Secret Modified - {0}", credentialId);
-                IdCredentials cred = convertSecret(secret);
-                if (cred != null) {
-                    credentials.put(credentialId, cred);
-                }
+                addSecret(secret);
                 break;
             }
             case DELETED: {
@@ -196,8 +222,13 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
 
     @Override
     public void onClose(KubernetesClientException cause) {
-        // TODO reconnect?
-        LOG.log(Level.INFO, "onClose.", cause);
+        if (cause != null) {
+            LOG.log(Level.WARNING, "Secrets watch stopped unexpectedly", cause);
+            LOG.log(Level.INFO, "Restating secrets watcher");
+            startWatchingForSecrets();
+        } else {
+            LOG.log(Level.INFO, "Secrets watcher stopped");
+        }
     }
 
 
