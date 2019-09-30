@@ -23,10 +23,7 @@
  */
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -37,6 +34,7 @@ import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.ExtensionList;
 import hudson.model.AdministrativeMonitor;
 import hudson.util.AdministrativeError;
+import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.Config;
@@ -47,7 +45,6 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import org.acegisecurity.Authentication;
-import org.apache.commons.lang.StringUtils;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
 import hudson.Extension;
@@ -79,6 +76,12 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
 
     private KubernetesCredentialsStore store = new KubernetesCredentialsStore(this);
 
+    /**
+     * Kubernetes <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors">label selector</a> expression
+     * for matching secrets to manage.
+     */
+    static final String LABEL_SELECTOR = KubernetesCredentialProvider.class.getName() + ".labelSelector";
+
     KubernetesClient getKubernetesClient() {
         if (client == null) {
             ConfigBuilder cb = new ConfigBuilder();
@@ -92,13 +95,17 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
     @Restricted(NoExternalUse.class) // only for callbacks from Jenkins
     public void startWatchingForSecrets() {
         final String initAdminMonitorId = getClass().getName() + ".initialize";
+        final String labelSelectorAdminMonitorId = getClass().getName() + ".labelSelector";
+        String labelSelector = System.getProperty(LABEL_SELECTOR);
         try {
             KubernetesClient _client = getKubernetesClient();
             LOG.log(Level.FINER, "Using namespace: {0}", String.valueOf(_client.getNamespace()));
+            LabelSelector selector = LabelSelectorExpressions.parse(labelSelector);
+            LOG.log(Level.INFO, "retrieving secrets with selector: {0}, {1}", new String[]{SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL, Objects.toString(selector)});
 
             // load current set of secrets into provider
             LOG.log(Level.FINER, "retrieving secrets");
-            SecretList list = _client.secrets().withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).list();
+            SecretList list = _client.secrets().withLabelSelector(selector).withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).list();
             ConcurrentHashMap<String, IdCredentials> _credentials = new  ConcurrentHashMap<>();
             List<Secret> secretList = list.getItems();
             for (Secret s : secretList) {
@@ -111,22 +118,29 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
             LOG.log(Level.FINER, "registering watch");
             // XXX https://github.com/fabric8io/kubernetes-client/issues/1014
             // watch(resourceVersion, watcher) is deprecated but there is nothing to say why?
-            watch = _client.secrets().withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).watch(list.getMetadata().getResourceVersion(), this);
+            watch = _client.secrets().withLabelSelector(selector).withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).watch(list.getMetadata().getResourceVersion(), this);
             LOG.log(Level.FINER, "registered watch, retrieving secrets");
 
             // successfully initialized, clear any previous monitors
-            clearAdminMonitors(initAdminMonitorId);
+            clearAdminMonitors(initAdminMonitorId, labelSelectorAdminMonitorId);
         } catch (KubernetesClientException kex) {
             LOG.log(Level.SEVERE, "Failed to initialise k8s secret provider, secrets from Kubernetes will not be available", kex);
             new AdministrativeError(initAdminMonitorId,
                     "Failed to initialize Kubernetes secret provider",
                     "Credentials from Kubernetes Secrets will not be available.", kex);
+        } catch (LabelSelectorParseException lex) {
+            LOG.log(Level.SEVERE, "Failed to initialise k8s secret provider, secrets from Kubernetes will not be available", lex);
+            new AdministrativeError(labelSelectorAdminMonitorId,
+                    "Failed to parse Kubernetes secret label selector",
+                    "Failed to parse Kubernetes secret <a href=\"https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors\" _target=\"blank\">label selector</a> " +
+                            "expression \"<code>" + labelSelector + "</code>\". Secrets from Kubernetes will not be available. ", lex);
         }
     }
 
-    private void clearAdminMonitors(String id) {
+    private void clearAdminMonitors(String... ids) {
+        Collection<String> monitorIds = Arrays.asList(ids);
         ExtensionList<AdministrativeMonitor> all = AdministrativeMonitor.all();
-        List<AdministrativeMonitor> toRemove = all.stream().filter(am -> StringUtils.equals(id, am.id)).collect(Collectors.toList());
+        List<AdministrativeMonitor> toRemove = all.stream().filter(am -> monitorIds.contains(am.id)).collect(Collectors.toList());
         all.removeAll(toRemove);
     }
 

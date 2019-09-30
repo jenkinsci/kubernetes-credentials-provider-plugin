@@ -3,6 +3,8 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 import static org.junit.Assert.*;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -49,13 +51,17 @@ public class KubernetesCredentialsProviderTest {
     }
 
     private void defaultMockKubernetesResponses() {
-        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type")
+        mockKubernetesResponses("jenkins.io%2Fcredentials-type");
+    }
+
+    private void mockKubernetesResponses(String labelSelector) {
+        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=" + labelSelector)
                 .andReturn(200, new SecretListBuilder()
                         .withNewMetadata()
                         .withResourceVersion("1")
                         .endMetadata()
                         .build()).always();
-        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type&resourceVersion=1&watch=true")
+        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=" + labelSelector + "&resourceVersion=1&watch=true")
                 .andReturn(200, null).always();
     }
 
@@ -144,11 +150,58 @@ public class KubernetesCredentialsProviderTest {
         assertRequestCount("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type", 1);
     }
 
+    @Test
+    public void startWatchingWithCustomLabelSelectors() throws InterruptedException {
+        try {
+            System.setProperty(KubernetesCredentialProvider.LABEL_SELECTOR, "env in (iat uat)");
+            mockKubernetesResponses("jenkins.io%2Fcredentials-type%2Cenv%20in%20%28iat%20uat%29");
+            KubernetesCredentialProvider provider = new MockedKubernetesCredentialProvider();
+            provider.startWatchingForSecrets();
+
+            assertRequestCount("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type%2Cenv%20in%20%28iat%20uat%29", 1);
+            assertRequestCountAtLeast("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type%2Cenv%20in%20%28iat%20uat%29&resourceVersion=1&watch=true", 1);
+        } finally {
+            System.clearProperty(KubernetesCredentialProvider.LABEL_SELECTOR);
+        }
+    }
+
+    @Test
+    public void startWatchingWithCustomLabelException() throws IOException {
+        try {
+            System.setProperty(KubernetesCredentialProvider.LABEL_SELECTOR, "partition  in");
+            KubernetesCredentialProvider provider = new MockedKubernetesCredentialProvider();
+            provider.startWatchingForSecrets();
+            assertEquals("expect administrative error", 1, getLabelSelectorAdministrativeMonitorCount());
+
+            System.setProperty(KubernetesCredentialProvider.LABEL_SELECTOR, "env in (iat uat)");
+            // enable default responses
+            mockKubernetesResponses("jenkins.io%2Fcredentials-type%2Cenv%20in%20%28iat%20uat%29");
+            // restart with success should clear errors
+            provider.startWatchingForSecrets();
+            assertEquals("expect administrative error to be cleared", 0, getLabelSelectorAdministrativeMonitorCount());
+        } finally {
+            System.clearProperty(KubernetesCredentialProvider.LABEL_SELECTOR);
+        }
+    }
+
+    private long getLabelSelectorAdministrativeMonitorCount() {
+        return AdministrativeMonitor.all().stream()
+                .filter(am -> am.id.equals(MockedKubernetesCredentialProvider.class.getName() + ".labelSelector"))
+                .count();
+    }
+
     private void assertRequestCount(String path, long count) throws InterruptedException {
-        long actual = getRequests().stream()
+        assertEquals(path, count, requestCount(path));
+    }
+
+    private void assertRequestCountAtLeast(String path, long count) throws InterruptedException {
+        assertTrue(path + " >= " + count, requestCount(path) >= count);
+    }
+
+    private long requestCount(String path) throws InterruptedException {
+        return getRequests().stream()
                 .filter(r -> r.getPath().equals(path))
                 .count();
-        assertEquals(path, count, actual);
     }
 
     private List<RecordedRequest> getRequests() throws InterruptedException {
