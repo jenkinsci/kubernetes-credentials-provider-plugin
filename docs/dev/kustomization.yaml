@@ -1,0 +1,7 @@
+resources:
+  - testing-namespace.yaml
+  - service-account.yaml
+  - secret-reader-role.yaml
+  - secret-reader-role-binding.yaml
+  - jenkins-kube-creds.yaml
+  - service.yaml

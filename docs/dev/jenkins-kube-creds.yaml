@@ -16,6 +16,9 @@ spec:
       - name: jenkins-k8s-creds
         imagePullPolicy: Always
         image: eu.gcr.io/cdx-dev/jenkins-k8s-creds:latest
+        # if using docker desktop kubernetes
+        #imagePullPolicy: Never
+        #image: jenkins-k8s-creds:latest
         ports:
         - containerPort: 8080
           protocol: TCP
@@ -36,7 +39,7 @@ metadata:
   name: jenkins
   namespace: testing
 spec:
-  storageClassName: standard
+  #storageClassName: standard
   accessModes:
     - ReadWriteOnce
   resources:

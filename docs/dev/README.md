@@ -17,12 +17,9 @@ All commands are run from `docs/dev` unless otherwise specified.
 
 ### Initial setup...
 
-1. Create the testing namespace  `kubectl apply -f testing-namespace.yaml`
-2. create a service user to run Jenkins  `kubectl apply -f service-account.yaml`
-3. Create a role to allow secret reading `kubectl apply -f secret-reader-role.yaml`
-4. Create a role binding to bind the role to the service user. `kubectl apply -f secret-reader-role-binding.yaml`
 
-### Deploying / upgrading Jenkins / plugin
+
+### Build Docker Image
 
 1. Build the plugin (`mvn verify`) (from the root of the repository)
 2. build and tag the docker image
@@ -41,11 +38,30 @@ All commands are run from `docs/dev` unless otherwise specified.
    ```
       docker push eu.gcr.io/myproject/jenkins-k8s-creds      
    ```
-4. deploy the application  `kubectl apply -f jenkins-kube-creds.yaml`
-5. deploy service so that Jenkins is exposed (optional and one time only)  `kubectl apply -f service.yaml`
-
 Note: [this page](https://cloud.google.com/container-registry/docs/pushing-and-pulling) is useful for setting up auth to push to GKE
 In short: `gcloud docker -- push <image>`
+
+### Deploy Jenkins with Plugin
+
+After building the image using the steps above use the following steps to deploy it to development cluster for testing.
+   
+1. Create the testing namespace  `kubectl apply -f testing-namespace.yaml`
+2. create a service user to run Jenkins  `kubectl apply -f service-account.yaml`
+3. Create a role to allow secret reading `kubectl apply -f secret-reader-role.yaml`
+4. Create a role binding to bind the role to the service user. `kubectl apply -f secret-reader-role-binding.yaml`   
+5. deploy the application  `kubectl apply -f jenkins-kube-creds.yaml`
+6. deploy service so that Jenkins is exposed (optional and one time only)  `kubectl apply -f service.yaml`
+
+**OR** 
+
+If using `kubectl` 1.14+ you can simply run the [kustomization](https://github.com/kubernetes-sigs/kustomize) script:
+```
+# from the project root 
+kubectl apply -k docs/dev
+
+# and to tear it all down
+kubectl delete -k docs/dev
+```
 
 ## Documentation
 
