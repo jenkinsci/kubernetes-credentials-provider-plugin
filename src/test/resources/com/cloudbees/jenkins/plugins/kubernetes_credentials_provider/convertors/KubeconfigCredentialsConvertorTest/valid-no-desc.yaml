@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Secret
+metadata:
+# this is the jenkins id.
+  name: "a-test-kubeconfig"
+  labels:
+# so we know what type it is.
+    "jenkins.io/credentials-type": "kubeconfig"
+type: Opaque
+data:
+# base64 encoded bytes
+  kubeconfig: SGVsbG8gV29ybGQh # Hello World!
