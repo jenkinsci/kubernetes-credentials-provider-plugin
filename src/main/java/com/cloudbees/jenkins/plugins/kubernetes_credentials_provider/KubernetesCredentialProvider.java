@@ -29,6 +29,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.ExtensionList;
@@ -44,6 +47,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
+import jenkins.model.Jenkins;
 import org.acegisecurity.Authentication;
 import org.kohsuke.accmod.Restricted;
 import org.kohsuke.accmod.restrictions.NoExternalUse;
@@ -55,7 +59,6 @@ import hudson.init.Terminator;
 import hudson.model.ItemGroup;
 import hudson.model.ModelObject;
 import hudson.security.ACL;
-import jenkins.model.Jenkins;
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsStore;
@@ -68,6 +71,9 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
 
     /** Map of Credentials keyed by their credential ID */
     private ConcurrentHashMap<String, IdCredentials> credentials = new ConcurrentHashMap<>();
+
+    /** Map of Credentials to ItemGroup paths they are available in, keyed by credential ID */
+    private Multimap<String, String> credentialScopes = Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
 
     @CheckForNull
     private KubernetesClient client;
@@ -107,12 +113,14 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
             LOG.log(Level.FINER, "retrieving secrets");
             SecretList list = _client.secrets().withLabelSelector(selector).withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).list();
             ConcurrentHashMap<String, IdCredentials> _credentials = new  ConcurrentHashMap<>();
+            Multimap<String, String> _credentialScopes = Multimaps.synchronizedListMultimap(ArrayListMultimap.create());
             List<Secret> secretList = list.getItems();
             for (Secret s : secretList) {
                 LOG.log(Level.FINE, "Secret Added - {0}", SecretUtils.getCredentialId(s));
-                addSecret(s, _credentials);
+                addSecret(s, _credentials, _credentialScopes);
             }
             credentials = _credentials;
+            credentialScopes = _credentialScopes;
 
             // start watching new secrets before we list the current set of secrets so we don't miss any events
             LOG.log(Level.FINER, "registering watch");
@@ -163,6 +171,16 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
         if (ACL.SYSTEM.equals(authentication)) {
             ArrayList<C> list = new ArrayList<>();
             for (IdCredentials credential : credentials.values()) {
+                if (itemGroup != Jenkins.getInstanceOrNull()) {
+                    String scope = '/' + itemGroup.getUrl();
+                    Collection<String> validScopes = credentialScopes.get(credential.getId());
+                    LOG.log(Level.FINEST, "getCredentials checking if {0} has scope {1}", new Object[] { credential.getId(), scope });
+                    if (!validScopes.isEmpty() && validScopes.stream().noneMatch(scope::startsWith)) {
+                        LOG.log(Level.FINEST, "getCredentials scope not found in: {0}", validScopes);
+                        continue;
+                    }
+                }
+
                 // is s a type of type then populate the list...
                 LOG.log(Level.FINEST, "getCredentials {0} is a possible candidate", credential.getId());
                 if (type.isAssignableFrom(credential.getClass())) {
@@ -185,13 +203,15 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
     }
 
     private void addSecret(Secret secret) {
-        addSecret(secret, credentials);
+        addSecret(secret, credentials, credentialScopes);
     }
 
-    private void addSecret(Secret secret, Map<String, IdCredentials> map) {
+    private void addSecret(Secret secret, Map<String, IdCredentials> map, Multimap<String, String> scopes) {
         IdCredentials cred = convertSecret(secret);
+        String credentialId = SecretUtils.getCredentialId(secret);
         if (cred != null) {
-            map.put(SecretUtils.getCredentialId(secret), cred);
+            map.put(credentialId, cred);
+            scopes.putAll(credentialId, SecretUtils.getCredentialScopes(secret));
         }
     }
 
@@ -212,6 +232,7 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
             case DELETED: {
                 LOG.log(Level.FINE, "Secret Deleted - {0}", credentialId);
                 credentials.remove(credentialId);
+                credentialScopes.removeAll(credentialId);
                 break;
             }
             case ERROR:

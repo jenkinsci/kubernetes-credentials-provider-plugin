@@ -1,13 +1,15 @@
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors.UsernamePasswordCredentialsConvertor;
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
@@ -66,6 +68,32 @@ public class KubernetesCredentialsProviderTest {
     }
 
     @Test
+    public void startWatchingForSecrets_Scoped() throws IOException {
+        Map<String, String> s4Labels = new HashMap<>();
+        s4Labels.put("jenkins.io/credentials-scope", "/my-item-group");
+        Secret s4 = createSecret("s4", s4Labels);
+
+        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type")
+                .andReturn(200, new SecretListBuilder()
+                        .withNewMetadata()
+                        .withResourceVersion("1")
+                        .endMetadata()
+                        .addToItems(s4)
+                        .build())
+                .once();
+
+        KubernetesCredentialProvider provider = new MockedKubernetesCredentialProvider();
+        provider.startWatchingForSecrets();
+
+        ItemGroup group = mock(ItemGroup.class);
+        when(group.getUrl()).thenReturn("my-item-group/");
+
+        List<UsernamePasswordCredentials> credentials = provider.getCredentials(UsernamePasswordCredentials.class, group, ACL.SYSTEM);
+        assertEquals("credentials", 1, credentials.size());
+        assertTrue("secret s4 exists", credentials.stream().anyMatch(c -> "s4".equals(((UsernamePasswordCredentialsImpl) c).getId())));
+    }
+
+    @Test
     public void startWatchingForSecrets() {
         Secret s1 = createSecret("s1");
         Secret s2 = createSecret("s2");
@@ -98,16 +126,23 @@ public class KubernetesCredentialsProviderTest {
         assertTrue("secret s3 exists", credentials.stream().anyMatch(c -> "s3".equals(((UsernamePasswordCredentialsImpl) c).getId())));
     }
 
-    private Secret createSecret(String name) {
+    private Secret createSecret(String name, Map<String, String> labels) {
+        Map<String, String> labelsCopy = new HashMap<>(labels);
+        labelsCopy.put("jenkins.io/credentials-type", "usernamePassword");
+
         return new SecretBuilder()
                 .withNewMetadata()
                 .withNamespace("test")
                 .withName(name)
-                .addToLabels("jenkins.io/credentials-type", "usernamePassword")
+                .addToLabels(labelsCopy)
                 .endMetadata()
                 .addToData("username", "bXlVc2VybmFtZQ==")
                 .addToData("password", "UGEkJHdvcmQ=")
                 .build();
+    }
+
+    private Secret createSecret(String name) {
+        return createSecret(name, Collections.emptyMap());
     }
 
     @Test

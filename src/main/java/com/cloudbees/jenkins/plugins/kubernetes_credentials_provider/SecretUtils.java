@@ -30,10 +30,13 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Optional;
+
+import com.google.common.base.Splitter;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -54,7 +57,10 @@ public abstract class SecretUtils {
 
     /** Annotation prefix for the optional custom mapping of data */
     private static final String JENKINS_IO_CREDENTIALS_KEYBINDING_ANNOTATION_PREFIX = "jenkins.io/credentials-keybinding-";
-    
+
+    /** Optional annotation containing a comma separated list of job folders this credential is available to */
+    static final String JENKINS_IO_CREDENTIALS_SCOPE_LABEL = "jenkins.io/credentials-scope";
+
     static final String JENKINS_IO_CREDENTIALS_TYPE_LABEL = "jenkins.io/credentials-type";
 
 
@@ -105,6 +111,15 @@ public abstract class SecretUtils {
     public static String getCredentialId(Secret s) {
         // we must have a metadata as the label that identifies this as a Jenkins credential needs to be present
         return s.getMetadata().getName();
+    }
+
+    public static Iterable<String> getCredentialScopes(Secret s) {
+        String scopeString = s.getMetadata().getLabels().get(SecretUtils.JENKINS_IO_CREDENTIALS_SCOPE_LABEL);
+        if (scopeString == null) {
+            return Collections.emptyList();
+        }
+
+        return Splitter.on(',').trimResults().omitEmptyStrings().split(scopeString);
     }
 
     /**
