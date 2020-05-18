@@ -45,10 +45,8 @@
   <properties>
     <revision>0.15</revision>
     <changelist>-SNAPSHOT</changelist>
-    <jenkins.version>2.176.1</jenkins.version>
+    <jenkins.version>2.190.1</jenkins.version>
     <java.level>8</java.level>
-    <!--  override crappy OSS default -->
-    <surefire.rerunFailingTestsCount>0</surefire.rerunFailingTestsCount>
   </properties>
 
   <scm>
