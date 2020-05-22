@@ -5,7 +5,7 @@ metadata:
   name: "a-test-aws"
   labels:
 # so we know what type it is.
-    "jenkins.io/credentials-type": "usernamePassword"
+    "jenkins.io/credentials-type": "aws"
 type: Opaque
 data:
 # UTF-8 base64 encoded
