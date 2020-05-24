@@ -105,6 +105,11 @@
       </dependency>
       <dependency>
         <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>azure-credentials</artifactId>
+          <version>4.0.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>openstack-cloud</artifactId>
         <version>2.47</version>
         <exclusions>
@@ -191,6 +196,12 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>aws-credentials</artifactId>
+      <optional>true</optional>
+    </dependency>
+      <!-- for Azure credentials -->
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>azure-credentials</artifactId>
       <optional>true</optional>
     </dependency>
       <!-- for Openstack credentials -->

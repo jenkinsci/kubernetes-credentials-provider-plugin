@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Secret
+metadata:
+# this is the jenkins id.
+  name: "a-test-azure"
+  labels:
+# so we know what type it is.
+    "jenkins.io/credentials-type": "azure"
+type: Opaque
+data:
+# UTF-8 base64 encoded
+  subscriptionId: dGVzdC1zdWJzY3JpcHRpb24taWQ=  #test-subscription-id
+  clientId: dGVzdC1jbGllbnQtaWQ=                #test-client-id
+  clientSecret: dS4mJShaPnlFWjgofTp1b3k=        #u.&%(Z>yEZ8(}:uoy

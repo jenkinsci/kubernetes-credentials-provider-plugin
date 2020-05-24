@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+# this is the jenkins id.
+  name: "a-test-azure"
+  labels:
+# so we know what type it is.
+    "jenkins.io/credentials-type": "azure"
+  annotations:
+# description - can not be a label as spaces are not allowed
+    "jenkins.io/credentials-description" : "credentials from Kubernetes"
+    # map the subscriptionId field to s
+    "jenkins.io/credentials-keybinding-subscriptionId" : "s"
+    # map the clientId field to ci
+    "jenkins.io/credentials-keybinding-clientId" : "ci"
+    # map the clientSecret field to cs
+    "jenkins.io/credentials-keybinding-clientSecret" : "cs"
+type: Opaque
+data:
+# UTF-8 base64 encoded
+  s: dGVzdC1zdWJzY3JpcHRpb24taWQ=  #test-subscription-id
+  ci: dGVzdC1jbGllbnQtaWQ=         #test-client-id
+  cs: dS4mJShaPnlFWjgofTp1b3k=     #u.&%(Z>yEZ8(}:uoy
