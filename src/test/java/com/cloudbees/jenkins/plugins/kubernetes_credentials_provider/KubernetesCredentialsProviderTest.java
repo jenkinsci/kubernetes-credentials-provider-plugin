@@ -1,6 +1,9 @@
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -8,6 +11,8 @@ import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors.UsernamePasswordCredentialsConvertor;
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
@@ -21,22 +26,26 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import jenkins.model.Jenkins;
+import jenkins.util.Timer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mock;
 import org.powermock.api.mockito.PowerMockito;
 import org.powermock.core.classloader.annotations.PowerMockIgnore;
 import org.powermock.core.classloader.annotations.PrepareForTest;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 @RunWith(PowerMockRunner.class)
-@PrepareForTest({ExtensionList.class})
+@PrepareForTest({ExtensionList.class, Timer.class})
 @PowerMockIgnore({"okhttp3.*", "io.fabric8.*"})
 public class KubernetesCredentialsProviderTest {
 
     public @Rule KubernetesServer server = new KubernetesServer();
+    private @Mock ScheduledExecutorService jenkinsTimer;
 
     @Before
     public void setUp() {
@@ -46,8 +55,10 @@ public class KubernetesCredentialsProviderTest {
         ExtensionList<SecretToCredentialConverter> converters = ExtensionList.create((Jenkins) null, SecretToCredentialConverter.class);
         converters.addAll(Collections.singleton(new UsernamePasswordCredentialsConvertor()));
         PowerMockito.mockStatic(ExtensionList.class);
+        PowerMockito.mockStatic(Timer.class);
         PowerMockito.when(ExtensionList.lookup(AdministrativeMonitor.class)).thenReturn(monitors);
         PowerMockito.when(ExtensionList.lookup(SecretToCredentialConverter.class)).thenReturn(converters);
+        PowerMockito.when(Timer.get()).thenReturn(jenkinsTimer);
     }
 
     private void defaultMockKubernetesResponses() {
@@ -120,6 +131,10 @@ public class KubernetesCredentialsProviderTest {
         defaultMockKubernetesResponses();
         // restart with success should clear errors
         provider.startWatchingForSecrets();
+        // verify we schedule reconnect task
+        ArgumentCaptor<Runnable> reconnectTask = ArgumentCaptor.forClass(Runnable.class);
+        verify(jenkinsTimer).schedule(reconnectTask.capture(), eq(5L), eq(TimeUnit.MINUTES));
+        reconnectTask.getValue().run();
         assertEquals("expect administrative error to be cleared", 0, getInitAdministrativeMonitorCount());
     }
 
