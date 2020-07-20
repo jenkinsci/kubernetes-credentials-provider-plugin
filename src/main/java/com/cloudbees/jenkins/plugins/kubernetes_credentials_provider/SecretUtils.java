@@ -52,6 +52,9 @@ public abstract class SecretUtils {
     /** Optional Kubernetes annotation for the credential description */
     private static final String JENKINS_IO_CREDENTIALS_DESCRIPTION_ANNOTATION = "jenkins.io/credentials-description";
 
+    /** Optional Kubernetes annotation for the credential id */
+    private static final String JENKINS_IO_CREDENTIALS_ID_ANNOTATION = "jenkins.io/credentials-id";
+
     /** Annotation prefix for the optional custom mapping of data */
     private static final String JENKINS_IO_CREDENTIALS_KEYBINDING_ANNOTATION_PREFIX = "jenkins.io/credentials-keybinding-";
     
@@ -103,6 +106,14 @@ public abstract class SecretUtils {
      * @return the credential ID for a given secret.
      */
     public static String getCredentialId(Secret s) {
+        // we must have a metadata as the label that identifies this as a Jenkins credential needs to be present
+        Map<String, String> annotations = s.getMetadata().getAnnotations();
+        if (annotations != null) {
+            String customId = annotations.get(JENKINS_IO_CREDENTIALS_ID_ANNOTATION);
+            if (customId != null) {
+                return customId;
+            }
+        }
         // we must have a metadata as the label that identifies this as a Jenkins credential needs to be present
         return s.getMetadata().getName();
     }
