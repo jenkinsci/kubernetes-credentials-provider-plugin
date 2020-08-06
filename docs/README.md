@@ -26,7 +26,7 @@ Because granting these permissions for secrets is not something that should be d
 
 Credentials are added by adding them as secrets to Kubernetes, this is covered in more detail in the [examples](examples) page.
 
-To restrict the secrets add by this plugin use the system property `com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.KubernetesCredentialProvider.labelSelector`
+To restrict the secrets added by this plugin use the system property `com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.KubernetesCredentialProvider.labelSelector`
 to set the [Kubernetes Label selector](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors) expression.
 
 ```
