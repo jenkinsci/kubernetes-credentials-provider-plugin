@@ -26,7 +26,10 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
+
+import com.cloudbees.plugins.credentials.CredentialsScope;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.junit.Test;
@@ -68,6 +71,20 @@ public class SecretUtilsTest {
     public void base64DecodeWithValidInput() {
         byte[] expected = "Hello".getBytes(StandardCharsets.UTF_8);
         assertThat(SecretUtils.base64Decode("SGVsbG8"), is(expected));
+    }
+
+    @Test
+    public void getCredentialScope() {
+        Map<String, String> scopeLabel = Collections.singletonMap(SecretUtils.JENKINS_IO_CREDENTIALS_SCOPE_LABEL, "system");
+        Secret s = new SecretBuilder().withNewMetadata().withLabels(scopeLabel).endMetadata().build();
+        assertThat(SecretUtils.getScope(s), is(CredentialsScope.SYSTEM));
+    }
+
+    @Test
+    public void getCredentialScopeDefaultsToGlobal() {
+        Map<String, String> typeLabel = Collections.singletonMap(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL, "usernamePassword");
+        Secret s = new SecretBuilder().withNewMetadata().withLabels(typeLabel).endMetadata().build();
+        assertThat(SecretUtils.getScope(s), is(CredentialsScope.GLOBAL));
     }
 
     @Test
