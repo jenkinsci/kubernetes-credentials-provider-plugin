@@ -106,6 +106,23 @@ public class UsernamePasswordCredentialsConvertorTest {
         }
     }
 
+    @Issue("JENKINS-53105")
+    @Test
+    public void canConvertAValidScopedSecret() throws Exception {
+        UsernamePasswordCredentialsConvertor convertor = new UsernamePasswordCredentialsConvertor();
+
+        try (InputStream is = get("validScoped.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            assertThat("The Secret was loaded correctly from disk", notNullValue());
+            UsernamePasswordCredentialsImpl credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-usernamepass"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
+            assertThat("credential username is mapped correctly", credential.getUsername(), is("myUsername"));
+            assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("Pa$$word"));
+        }
+    }
 
     @Test
     public void failsToConvertWhenUsernameMissing() throws Exception {

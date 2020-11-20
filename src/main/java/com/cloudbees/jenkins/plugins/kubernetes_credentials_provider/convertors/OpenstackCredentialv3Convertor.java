@@ -65,7 +65,7 @@ public class OpenstackCredentialv3Convertor extends SecretToCredentialConverter 
         String passwordBase64 = SecretUtils.getNonNullSecretData(secret, "password", "openstackCredentialv3 credential is missing the password");
         String password = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(passwordBase64), "openstackCredentialv3 credential has an invalid password (must be base64 encoded UTF-8)");
 
-        return new OpenstackCredentialv3(CredentialsScope.GLOBAL, SecretUtils.getCredentialId(secret), SecretUtils.getCredentialDescription(secret), userName, userDomain, projectName, projectDomain, password);
+        return new OpenstackCredentialv3(SecretUtils.getScope(secret), SecretUtils.getCredentialId(secret), SecretUtils.getCredentialDescription(secret), userName, userDomain, projectName, projectDomain, password);
 
     }
 

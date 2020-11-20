@@ -63,7 +63,7 @@ public class BasicSSHUserPrivateKeyCredentialsConvertor extends SecretToCredenti
 
         return new BasicSSHUserPrivateKey(
             // Scope
-            CredentialsScope.GLOBAL,
+            SecretUtils.getScope(secret),
             // ID
             SecretUtils.getCredentialId(secret),
             // Username

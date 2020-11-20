@@ -72,7 +72,7 @@ public class AWSCredentialsConvertor extends SecretToCredentialConverter {
 
         return new AWSCredentialsImpl(
                 // Scope
-                CredentialsScope.GLOBAL,
+                SecretUtils.getScope(secret),
                 // ID
                 SecretUtils.getCredentialId(secret),
                 // AccessKey

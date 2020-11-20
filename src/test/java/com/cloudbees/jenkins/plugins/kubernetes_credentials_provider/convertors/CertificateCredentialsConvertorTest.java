@@ -26,11 +26,14 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors
 import java.io.InputStream;
 import java.security.KeyStore;
 import java.security.cert.X509Certificate;
+
+import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.jvnet.hudson.test.Issue;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -110,6 +113,29 @@ public class CertificateCredentialsConvertorTest {
             assertThat("credential id is mapped correctly", credential.getId(), is("a-test-certificate"));
             assertThat("credential description is mapped correctly", credential.getDescription(), is("certificate credential from Kubernetes"));
             assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+            assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("testPassword"));
+            KeyStore ks = credential.getKeyStore();
+            // credential.getKeyStore never returns null so we need to check the Keystore contains our certificate
+            assertThat("credential certificate mapped correctly ", ks.containsAlias("myKey"), is(true));
+            // TODO what can we check here to see this is valid
+            X509Certificate cert  = (X509Certificate) ks.getCertificate("myKey");
+            assertThat("Correct cert", cert.getSubjectDN().getName(), is("CN=A Test, OU=Dev, O=CloudBees, L=Around The World, ST=Cool, C=earth"));
+        }
+    }
+
+    @Issue("JENKINS-53105")
+    @Test
+    public void canConvertAValidScopedSecret() throws Exception {
+        CertificateCredentialsConvertor convertor = new CertificateCredentialsConvertor();
+
+        try (InputStream is = get("validScoped.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            assertThat("The Secret was loaded correctly from disk", notNullValue());
+            CertificateCredentialsImpl credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-certificate"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is("certificate credential from Kubernetes"));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
             assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("testPassword"));
             KeyStore ks = credential.getKeyStore();
             // credential.getKeyStore never returns null so we need to check the Keystore contains our certificate

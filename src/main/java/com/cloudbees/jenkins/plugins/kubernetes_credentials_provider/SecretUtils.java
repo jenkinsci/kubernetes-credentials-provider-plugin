@@ -34,6 +34,8 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Optional;
+
+import com.cloudbees.plugins.credentials.CredentialsScope;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
@@ -54,7 +56,9 @@ public abstract class SecretUtils {
 
     /** Annotation prefix for the optional custom mapping of data */
     private static final String JENKINS_IO_CREDENTIALS_KEYBINDING_ANNOTATION_PREFIX = "jenkins.io/credentials-keybinding-";
-    
+
+    private static final String JENKINS_IO_CREDENTIALS_SCOPE_LABEL = "jenkins.io/credentials-scope";
+
     static final String JENKINS_IO_CREDENTIALS_TYPE_LABEL = "jenkins.io/credentials-type";
 
 
@@ -98,6 +102,18 @@ public abstract class SecretUtils {
     }
 
     /**
+     * Get the scope from a given {@code Secret}.
+     * @param s the secret whose scope we want to obtain.
+     * @return the scope for a given secret.
+     */
+    public static CredentialsScope getScope(Secret s) {
+        return CredentialsScope.valueOf(Optional
+                .ofNullable(s.getMetadata().getLabels().get(JENKINS_IO_CREDENTIALS_SCOPE_LABEL))
+                .orElse("global")
+                .toUpperCase());
+    }
+
+    /**
      * Obtain the credential ID from a given {@code Secret}.
      * @param s the secret whose id we want to obtain.
      * @return the credential ID for a given secret.
@@ -127,7 +143,7 @@ public abstract class SecretUtils {
      * @param obj the Object to check for {@code null}.
      * @param exceptionMessage detail message to be used in the event that a CredentialsConvertionException is thrown.
      * @param <T> the type of the obj.
-     * @return {@code obj} if not {@code null}. 
+     * @return {@code obj} if not {@code null}.
      * @throws CredentialsConvertionException iff {@code obj} is {@code null}.
      */
     public static <T> T requireNonNull(@Nullable T obj, String exceptionMessage) throws CredentialsConvertionException {
@@ -143,7 +159,7 @@ public abstract class SecretUtils {
      * @param exceptionMessage detail message to be used in the event that a CredentialsConvertionException is thrown.
      * @param mapped an optional mapping (adds a {@code "mapped to " + mapped} to the exception message if this is non null.
      * @param <T> the type of the obj.
-     * @return {@code obj} if not {@code null}. 
+     * @return {@code obj} if not {@code null}.
      * @throws CredentialsConvertionException iff {@code obj} is {@code null}.
      */
     public static <T> T requireNonNull(@Nullable T obj, String exceptionMessage, @Nullable String mapped) throws CredentialsConvertionException {
@@ -156,11 +172,11 @@ public abstract class SecretUtils {
         return obj;
     }
 
-    
+
     /**
      * Get the data for the specified key (or the mapped key if key is mapped), or throw a
      * CredentialsConvertionException if the data for the given key was not present..
-     * 
+     *
      * @param s the Secret
      * @param key the key to get the data for (which may be mapped to another key).
      * @param exceptionMessage the detailMessage of the exception if the data for the key (or mapped key) was not
@@ -171,7 +187,7 @@ public abstract class SecretUtils {
     @SuppressFBWarnings(value= {"ES_COMPARING_PARAMETER_STRING_WITH_EQ"}, justification="the string will be the same string if not mapped")
     public static String getNonNullSecretData(Secret s, String key, String exceptionMessage) throws CredentialsConvertionException {
         String mappedKey = getKeyName(s, key);
-        if (mappedKey == key) { // use String == as getKeyName(key) will return key if no custom mapping is defined) 
+        if (mappedKey == key) { // use String == as getKeyName(key) will return key if no custom mapping is defined)
             return requireNonNull(s.getData().get(key), exceptionMessage, null);
         }
         return requireNonNull(s.getData().get(mappedKey), exceptionMessage, mappedKey);
@@ -199,7 +215,7 @@ public abstract class SecretUtils {
      * Get the mapping for the specified key name. Secrets can override the defaults used by the plugin by specifying an
      * attribute of the type {@code jenkins.io/credentials-keybinding-name} containing the custom name - for example
      * {@code jenkins.io/credentials-keybinding-foo=wibble}.
-     * 
+     *
      * @param s the secret to inspect for a custom name.
      * @param key the name of the key we are looking for.
      * @return the custom mapping for the key or {@code key} (identical object) if there is no custom mapping.

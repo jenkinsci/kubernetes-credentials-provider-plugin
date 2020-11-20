@@ -10,6 +10,7 @@ Credentials are added and updated by adding/updating them as secrets to Kubernet
 The format of the Secret is different depending on the type of credential you wish to expose, but will all have several things in common:
 
 - the label  `"jenkins.io/credentials-type"` with a type that is known to the plugin (e.g. `certificate`, `secretFile`, `secretText`, `usernamePassword`, `basicSSHUserPrivateKey`, `aws`, 'openstackCredentialv3')
+- the label  `"jenkins.io/credentials-scope"` with a type that is either `global` (default) or `system`
 - an annotation for the credential description: `"jenkins.io/credentials-description" : "certificate credential from Kubernetes"`
 
 To add or update a Credential just execute the command `kubectl apply -f <nameOfFile.yaml>`

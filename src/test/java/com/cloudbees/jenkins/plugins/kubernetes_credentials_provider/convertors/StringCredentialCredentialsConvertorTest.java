@@ -24,6 +24,8 @@
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors;
 
 import java.io.InputStream;
+
+import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import static org.junit.Assert.*;
@@ -32,6 +34,8 @@ import org.junit.Test;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors.StringCredentialConvertor;
 import com.cloudbees.plugins.credentials.CredentialsScope;
+import org.jvnet.hudson.test.Issue;
+
 import static org.hamcrest.CoreMatchers.*;
 
 /**
@@ -79,10 +83,27 @@ public class StringCredentialCredentialsConvertorTest {
         }
     }
 
+    @Issue("JENKINS-53105")
+    @Test
+    public void canConvertAValidScopedSecret() throws Exception {
+        StringCredentialConvertor convertor = new StringCredentialConvertor();
+
+        try (InputStream is = get("validScoped.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            assertThat("The Secret was loaded correctly from disk", notNullValue());
+            StringCredentialsImpl credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-secret"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is("secret text credential from Kubernetes"));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
+            assertThat("credential text is mapped correctly", credential.getSecret().getPlainText(), is("mySecret!"));
+        }
+    }
+
     @Test
     public void failsToConvertWhenTextMissing() throws Exception {
         StringCredentialConvertor convertor = new StringCredentialConvertor();
-        
+
         try (InputStream is = get("missingText.yaml")) {
             Secret secret = Serialization.unmarshal(is, Secret.class);
             convertor.convert(secret);
@@ -95,7 +116,7 @@ public class StringCredentialCredentialsConvertorTest {
     @Test
     public void failsToConvertWhenUsernameCorrupt() throws Exception {
         StringCredentialConvertor convertor = new StringCredentialConvertor();
-        
+
         try (InputStream is = get("corruptText.yaml")) {
             Secret secret = Serialization.unmarshal(is, Secret.class);
             convertor.convert(secret);
@@ -108,7 +129,7 @@ public class StringCredentialCredentialsConvertorTest {
     @Test
     public void failsToConvertWhenDataEmpty() throws Exception {
         StringCredentialConvertor convertor = new StringCredentialConvertor();
-        
+
         try (InputStream is = get("void.yaml")) {
             Secret secret = Serialization.unmarshal(is, Secret.class);
             convertor.convert(secret);

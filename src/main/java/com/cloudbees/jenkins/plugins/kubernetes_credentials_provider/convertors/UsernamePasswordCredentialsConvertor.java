@@ -54,7 +54,7 @@ public class UsernamePasswordCredentialsConvertor extends SecretToCredentialConv
 
         String password = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(passwordBase64), "usernamePassword credential has an invalid password (must be base64 encoded UTF-8)");
 
-        return new UsernamePasswordCredentialsImpl(CredentialsScope.GLOBAL, SecretUtils.getCredentialId(secret), SecretUtils.getCredentialDescription(secret), username, password);
+        return new UsernamePasswordCredentialsImpl(SecretUtils.getScope(secret), SecretUtils.getCredentialId(secret), SecretUtils.getCredentialDescription(secret), username, password);
 
     }
 

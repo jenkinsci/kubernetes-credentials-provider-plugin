@@ -52,7 +52,7 @@ public class StringCredentialConvertor extends SecretToCredentialConverter {
 
         String secretText = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(textBase64), "secretText credential has an invalid text (must be base64 encoded UTF-8)");
 
-        return new StringCredentialsImpl(CredentialsScope.GLOBAL, SecretUtils.getCredentialId(secret), SecretUtils.getCredentialDescription(secret), hudson.util.Secret.fromString(secretText));
+        return new StringCredentialsImpl(SecretUtils.getScope(secret), SecretUtils.getCredentialId(secret), SecretUtils.getCredentialDescription(secret), hudson.util.Secret.fromString(secretText));
     }
 
 }
