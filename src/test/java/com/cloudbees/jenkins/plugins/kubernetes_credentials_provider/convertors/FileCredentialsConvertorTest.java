@@ -26,7 +26,6 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
-import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl;
@@ -43,7 +42,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import hudson.util.HistoricalSecrets;
 import jenkins.security.ConfidentialStore;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
-import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors.FileCredentialsConvertor;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;

@@ -25,7 +25,6 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors
 
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
 import com.cloudbees.plugins.credentials.CredentialsScope;
-import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsImpl;

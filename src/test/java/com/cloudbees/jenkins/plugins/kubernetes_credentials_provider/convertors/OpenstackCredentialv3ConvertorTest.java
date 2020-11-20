@@ -28,7 +28,6 @@ import java.io.InputStream;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 
-import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import hudson.util.HistoricalSecrets;
 
 import static org.hamcrest.CoreMatchers.containsString;

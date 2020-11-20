@@ -25,14 +25,12 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors
 
 import java.io.InputStream;
 
-import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import static org.junit.Assert.*;
 import org.jenkinsci.plugins.plaincredentials.impl.StringCredentialsImpl;
 import org.junit.Test;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
-import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors.StringCredentialConvertor;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import org.jvnet.hudson.test.Issue;
 
