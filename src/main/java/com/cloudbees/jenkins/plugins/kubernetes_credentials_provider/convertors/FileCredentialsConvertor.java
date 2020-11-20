@@ -29,7 +29,6 @@ import org.jenkinsci.plugins.variant.OptionalExtension;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretToCredentialConverter;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretUtils;
-import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.SecretBytes;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 
@@ -58,7 +57,7 @@ public class FileCredentialsConvertor extends SecretToCredentialConverter {
         byte[] _data = SecretUtils.requireNonNull(SecretUtils.base64Decode(dataBase64), "secretFile credential has an invalid data (must be base64 encoded data)");
 
         SecretBytes sb = SecretBytes.fromBytes(_data);
-        return new FileCredentialsImpl(SecretUtils.getScope(secret), SecretUtils.getCredentialId(secret), SecretUtils.getCredentialDescription(secret), filename, sb);
+        return new FileCredentialsImpl(SecretUtils.getCredentialScope(secret), SecretUtils.getCredentialId(secret), SecretUtils.getCredentialDescription(secret), filename, sb);
 
     }
 

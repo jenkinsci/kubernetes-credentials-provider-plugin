@@ -30,7 +30,6 @@ import org.jenkinsci.plugins.variant.OptionalExtension;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretToCredentialConverter;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretUtils;
-import com.cloudbees.plugins.credentials.CredentialsScope;
 
 /**
  * SecretToCredentialConvertor that converts {@link BasicSSHUserPrivateKey}.
@@ -63,7 +62,7 @@ public class BasicSSHUserPrivateKeyCredentialsConvertor extends SecretToCredenti
 
         return new BasicSSHUserPrivateKey(
             // Scope
-            SecretUtils.getScope(secret),
+            SecretUtils.getCredentialScope(secret),
             // ID
             SecretUtils.getCredentialId(secret),
             // Username

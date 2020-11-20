@@ -106,7 +106,7 @@ public abstract class SecretUtils {
      * @param s the secret whose scope we want to obtain.
      * @return the scope for a given secret.
      */
-    public static CredentialsScope getScope(Secret s) {
+    public static CredentialsScope getCredentialScope(Secret s) {
         return CredentialsScope.valueOf(Optional
                 .ofNullable(s.getMetadata().getLabels().get(JENKINS_IO_CREDENTIALS_SCOPE_LABEL))
                 .orElse("global")
