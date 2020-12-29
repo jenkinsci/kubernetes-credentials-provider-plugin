@@ -37,7 +37,7 @@ public abstract class SecretToCredentialConverter implements ExtensionPoint {
     /**
      * Check if this converter can transform secrets of a given type.
      * @param type the type of secret.  This is <em>normally</em> the symbol attached to the credential type by the credential binding plugin. 
-     * @return {@code true} iff this {@code SecretToCredentialConvertor} can convert secrets of the specified type.
+     * @return {@code true} if this {@code SecretToCredentialConvertor} can convert secrets of the specified type.
      */
     public abstract boolean canConvert(String type);
 

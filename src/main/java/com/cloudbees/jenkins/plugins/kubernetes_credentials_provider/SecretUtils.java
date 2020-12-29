@@ -128,7 +128,7 @@ public abstract class SecretUtils {
      * @param exceptionMessage detail message to be used in the event that a CredentialsConvertionException is thrown.
      * @param <T> the type of the obj.
      * @return {@code obj} if not {@code null}. 
-     * @throws CredentialsConvertionException iff {@code obj} is {@code null}.
+     * @throws CredentialsConvertionException if {@code obj} is {@code null}.
      */
     public static <T> T requireNonNull(@Nullable T obj, String exceptionMessage) throws CredentialsConvertionException {
         if (obj == null) {
@@ -144,7 +144,7 @@ public abstract class SecretUtils {
      * @param mapped an optional mapping (adds a {@code "mapped to " + mapped} to the exception message if this is non null.
      * @param <T> the type of the obj.
      * @return {@code obj} if not {@code null}. 
-     * @throws CredentialsConvertionException iff {@code obj} is {@code null}.
+     * @throws CredentialsConvertionException if {@code obj} is {@code null}.
      */
     public static <T> T requireNonNull(@Nullable T obj, String exceptionMessage, @Nullable String mapped) throws CredentialsConvertionException {
         if (obj == null) {
