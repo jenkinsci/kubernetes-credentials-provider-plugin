@@ -108,10 +108,12 @@ public abstract class SecretUtils {
      * @return the scope for a given secret.
      */
     public static CredentialsScope getCredentialScope(Secret s) {
-        return CredentialsScope.valueOf(Optional
+        CredentialsScope scope = CredentialsScope.valueOf(Optional
                 .ofNullable(s.getMetadata().getLabels().get(JENKINS_IO_CREDENTIALS_SCOPE_LABEL))
                 .orElse("global")
                 .toUpperCase(Locale.ROOT));
+        LOG.log(Level.FINE, "Scope for secret {0} is set to {1}", new Object[] {getCredentialId(s), scope});
+        return scope;
     }
 
     /**
