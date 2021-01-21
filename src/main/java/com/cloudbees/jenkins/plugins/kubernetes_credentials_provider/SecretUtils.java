@@ -110,7 +110,7 @@ public abstract class SecretUtils {
         return CredentialsScope.valueOf(Optional
                 .ofNullable(s.getMetadata().getLabels().get(JENKINS_IO_CREDENTIALS_SCOPE_LABEL))
                 .orElse("global")
-                .toUpperCase());
+                .toUpperCase(Local.ROOT));
     }
 
     /**
