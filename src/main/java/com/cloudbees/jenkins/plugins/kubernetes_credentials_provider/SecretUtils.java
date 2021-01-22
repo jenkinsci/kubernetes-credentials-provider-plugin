@@ -104,15 +104,21 @@ public abstract class SecretUtils {
 
     /**
      * Get the scope from a given {@code Secret}.
+     * If the label is not supported or empty, then it defaults to global scope.
      * @param s the secret whose scope we want to obtain.
      * @return the scope for a given secret.
      */
     public static CredentialsScope getCredentialScope(Secret s) {
-        CredentialsScope scope = CredentialsScope.valueOf(Optional
-                .ofNullable(s.getMetadata().getLabels().get(JENKINS_IO_CREDENTIALS_SCOPE_LABEL))
-                .orElse("global")
-                .toUpperCase(Locale.ROOT));
-        LOG.log(Level.FINE, "Scope for secret {0} is set to {1}", new Object[] {getCredentialId(s), scope});
+        CredentialsScope scope = CredentialsScope.GLOBAL;
+        String label = s.getMetadata().getLabels().get(JENKINS_IO_CREDENTIALS_SCOPE_LABEL);
+        if (label != null) {
+            try {
+                scope = CredentialsScope.valueOf(label.toUpperCase(Locale.ROOT));
+            } catch (IllegalArgumentException exception) {
+                LOG.log(Level.INFO, "Secret {0} contains an unsupported scope label {0} - defaults to global scope",
+                        new Object[]{getCredentialId(s), label});
+            }
+        }
         return scope;
     }
 

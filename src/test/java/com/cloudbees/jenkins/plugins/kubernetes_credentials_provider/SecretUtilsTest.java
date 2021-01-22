@@ -73,16 +73,16 @@ public class SecretUtilsTest {
     }
 
     @Test
-    public void getCredentialScope() {
+    public void getCredentialScopeWithValidScopeLabel() {
         Map<String, String> scopeLabel = Collections.singletonMap(SecretUtils.JENKINS_IO_CREDENTIALS_SCOPE_LABEL, "system");
         Secret s = new SecretBuilder().withNewMetadata().withLabels(scopeLabel).endMetadata().build();
         assertThat(SecretUtils.getCredentialScope(s), is(CredentialsScope.SYSTEM));
     }
 
     @Test
-    public void getCredentialScopeDefaultsToGlobal() {
-        Map<String, String> typeLabel = Collections.singletonMap(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL, "usernamePassword");
-        Secret s = new SecretBuilder().withNewMetadata().withLabels(typeLabel).endMetadata().build();
+    public void getCredentialScopeWithInvalidScopeLabelDefaultsToGlobal() {
+        Map<String, String> typeLabel = Collections.singletonMap(SecretUtils.JENKINS_IO_CREDENTIALS_SCOPE_LABEL, "barf");
+        Secret s = new SecretBuilder().withNewMetadata().withName("secret").withLabels(typeLabel).endMetadata().build();
         assertThat(SecretUtils.getCredentialScope(s), is(CredentialsScope.GLOBAL));
     }
 
