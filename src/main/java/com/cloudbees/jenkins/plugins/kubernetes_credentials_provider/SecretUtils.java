@@ -115,7 +115,7 @@ public abstract class SecretUtils {
             try {
                 scope = CredentialsScope.valueOf(label.toUpperCase(Locale.ROOT));
             } catch (IllegalArgumentException exception) {
-                LOG.log(Level.INFO, "Secret {0} contains an unsupported scope label {0} - defaults to global scope",
+                LOG.log(Level.FINE, "Secret {0} contains an unsupported scope label {0} - defaults to global scope",
                         new Object[]{getCredentialId(s), label});
             }
         }
