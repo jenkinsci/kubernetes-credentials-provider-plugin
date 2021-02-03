@@ -73,17 +73,17 @@ public class SecretUtilsTest {
     }
 
     @Test
-    public void getCredentialScopeWithValidScopeLabel() {
+    public void getCredentialScopeWithValidScopeLabel() throws CredentialsConvertionException {
         Map<String, String> scopeLabel = Collections.singletonMap(SecretUtils.JENKINS_IO_CREDENTIALS_SCOPE_LABEL, "system");
         Secret s = new SecretBuilder().withNewMetadata().withLabels(scopeLabel).endMetadata().build();
         assertThat(SecretUtils.getCredentialScope(s), is(CredentialsScope.SYSTEM));
     }
 
-    @Test
-    public void getCredentialScopeWithInvalidScopeLabelDefaultsToGlobal() {
-        Map<String, String> typeLabel = Collections.singletonMap(SecretUtils.JENKINS_IO_CREDENTIALS_SCOPE_LABEL, "barf");
-        Secret s = new SecretBuilder().withNewMetadata().withName("secret").withLabels(typeLabel).endMetadata().build();
-        assertThat(SecretUtils.getCredentialScope(s), is(CredentialsScope.GLOBAL));
+    @Test(expected = CredentialsConvertionException.class)
+    public void getCredentialScopeWithInvalidScopeThrowsAnException() throws CredentialsConvertionException {
+        Map<String, String> invalidScope = Collections.singletonMap(SecretUtils.JENKINS_IO_CREDENTIALS_SCOPE_LABEL, "barf");
+        Secret secret = new SecretBuilder().withNewMetadata().withLabels(invalidScope).endMetadata().build();
+        SecretUtils.getCredentialScope(secret);
     }
 
     @Test
