@@ -1,0 +1,2 @@
+_extends: .github
+tag-template: kubernetes-credentials-provider-$NEXT_MINOR_VERSION
