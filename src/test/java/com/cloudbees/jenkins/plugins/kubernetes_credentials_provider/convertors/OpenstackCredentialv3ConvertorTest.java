@@ -48,6 +48,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import org.jvnet.hudson.test.Issue;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 
@@ -134,6 +135,27 @@ public class OpenstackCredentialv3ConvertorTest {
             assertThat("credential id is mapped correctly", credential.getId(), is("test-openstack-credential-v3"));
             assertThat("credential description is mapped correctly", credential.getDescription(), is(emptyString()));
             assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+            assertThat("credential userName is mapped correctly", credential.getUserName(), is("casualName"));
+            assertThat("credential userDomain is mapped correctly", credential.getUserDomain(), is("meaningfulDomain"));
+            assertThat("credential projectName is mapped correctly", credential.getProjectName(), is("simpleProject"));
+            assertThat("credential projectDomain is mapped correctly", credential.getProjectDomain(), is("everSimplerDomain"));
+            assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("s3cr3tPass"));
+        }
+    }
+
+    @Issue("JENKINS-53105")
+    @Test
+    public void canConvertAValidScopedSecret() throws Exception {
+        OpenstackCredentialv3Convertor convertor = new OpenstackCredentialv3Convertor();
+
+        try (InputStream is = get("validScoped.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            assertThat("The Secret was loaded correctly from disk", notNullValue());
+            OpenstackCredentialv3 credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("test-openstack-credential-v3"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is("openstack credentials for you Jenkins in Kubernetes!"));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
             assertThat("credential userName is mapped correctly", credential.getUserName(), is("casualName"));
             assertThat("credential userDomain is mapped correctly", credential.getUserDomain(), is("meaningfulDomain"));
             assertThat("credential projectName is mapped correctly", credential.getProjectName(), is("simpleProject"));

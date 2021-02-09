@@ -29,6 +29,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsImpl;
 import org.junit.Test;
+import org.jvnet.hudson.test.Issue;
 
 import java.io.InputStream;
 
@@ -161,6 +162,26 @@ public class AWSCredentialsConvertorTest {
             assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(accessKey));
             assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(secretKey));
             assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(iamRoleArn));
+        }
+    }
+
+    @Issue("JENKINS-53105")
+    @Test
+    public void canConvertAValidScopedSecret() throws Exception {
+        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
+
+        try (InputStream is = get("validScoped.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            assertThat("The Secret was loaded correctly from disk", notNullValue());
+            AWSCredentialsImpl credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
+            assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(accessKey));
+            assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(secretKey));
+            assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(iamRoleArn));
+            assertThat("credential iamMfaSerialNumber is mapped correctly", credential.getIamMfaSerialNumber(), is(iamMfaSerialNumber));
         }
     }
 

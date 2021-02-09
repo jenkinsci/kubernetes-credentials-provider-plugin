@@ -24,12 +24,13 @@
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors;
 
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.jvnet.hudson.test.Issue;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
@@ -39,7 +40,6 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import hudson.util.HistoricalSecrets;
 import jenkins.security.ConfidentialStore;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
-import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors.BasicSSHUserPrivateKeyCredentialsConvertor;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.jenkins.plugins.sshcredentials.impl.BasicSSHUserPrivateKey;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -175,6 +175,25 @@ public class BasicSSHUserPrivateKeyCredentialsConvertorTest {
             assertThat("credential username is mapped correctly", credential.getUsername(), is("jenkins"));
             assertThat("credential privateKey is mapped correctly", credential.getPrivateKey(), is(this.testkey));
             assertThat("credential passphrase is mapped correctly", credential.getPassphrase(), is(hudson.util.Secret.fromString("mypassphrase")));
+        }
+    }
+
+    @Issue("JENKINS-53105")
+    @Test
+    public void canConvertAValidScopedSecret() throws Exception {
+        BasicSSHUserPrivateKeyCredentialsConvertor convertor = new BasicSSHUserPrivateKeyCredentialsConvertor();
+
+        try (InputStream is = get("validScoped.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            assertThat("The Secret was loaded correctly from disk", notNullValue());
+            BasicSSHUserPrivateKey credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("jenkins-key"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is("basic user private key credential from Kubernetes"));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
+            assertThat("credential username is mapped correctly", credential.getUsername(), is("jenkins"));
+            assertThat("credential privateKey is mapped correctly", credential.getPrivateKey(), is(this.testkey));
+            assertThat("credential passphrase is mapped correctly", credential.getPassphrase(), nullValue());
         }
     }
 

@@ -26,12 +26,14 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Optional;
+
+import com.cloudbees.plugins.credentials.CredentialsScope;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretBuilder;
 import org.junit.Test;
-import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
-import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretUtils;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.text.StringContainsInOrder.stringContainsInOrder;
@@ -68,6 +70,20 @@ public class SecretUtilsTest {
     public void base64DecodeWithValidInput() {
         byte[] expected = "Hello".getBytes(StandardCharsets.UTF_8);
         assertThat(SecretUtils.base64Decode("SGVsbG8"), is(expected));
+    }
+
+    @Test
+    public void getCredentialScopeWithValidScopeLabel() throws CredentialsConvertionException {
+        Map<String, String> scopeLabel = Collections.singletonMap(SecretUtils.JENKINS_IO_CREDENTIALS_SCOPE_LABEL, "system");
+        Secret s = new SecretBuilder().withNewMetadata().withLabels(scopeLabel).endMetadata().build();
+        assertThat(SecretUtils.getCredentialScope(s), is(CredentialsScope.SYSTEM));
+    }
+
+    @Test(expected = CredentialsConvertionException.class)
+    public void getCredentialScopeWithInvalidScopeThrowsAnException() throws CredentialsConvertionException {
+        Map<String, String> invalidScope = Collections.singletonMap(SecretUtils.JENKINS_IO_CREDENTIALS_SCOPE_LABEL, "barf");
+        Secret secret = new SecretBuilder().withNewMetadata().withLabels(invalidScope).endMetadata().build();
+        SecretUtils.getCredentialScope(secret);
     }
 
     @Test
