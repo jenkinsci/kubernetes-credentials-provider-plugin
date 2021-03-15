@@ -26,7 +26,6 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretToCredentialConverter;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretUtils;
-import com.cloudbees.plugins.credentials.SecretBytes;
 import hudson.Extension;
 import io.fabric8.kubernetes.api.model.Secret;
 import java.io.UnsupportedEncodingException;
