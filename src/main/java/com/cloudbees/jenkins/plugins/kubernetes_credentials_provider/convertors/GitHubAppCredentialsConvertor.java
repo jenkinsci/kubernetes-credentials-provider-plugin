@@ -28,7 +28,6 @@ import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretToCre
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretUtils;
 import hudson.Extension;
 import io.fabric8.kubernetes.api.model.Secret;
-import java.io.UnsupportedEncodingException;
 import org.jenkinsci.plugins.github_branch_source.GitHubAppCredentials;
 
 /**
@@ -52,14 +51,9 @@ public class GitHubAppCredentialsConvertor extends SecretToCredentialConverter {
 
         String appID = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(appIDBase64), "gitHubApp credential has an invalid appID (must be base64 encoded UTF-8)");
 
-        byte[] privateKey = SecretUtils.requireNonNull(SecretUtils.base64Decode(privateKeyBase64), "gitHubApp credential has an invalid privateKey (must be base64 encoded data)");
+        String privateKey = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(privateKeyBase64), "gitHubApp credential has an invalid privateKey (must be base64 encoded data)");
 
-        hudson.util.Secret privateKeySecret = null;
-        try {
-            privateKeySecret = hudson.util.Secret.fromString(new String(privateKey, "UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            throw new CredentialsConvertionException("unable to convert privateKey", e);
-        }
+        hudson.util.Secret privateKeySecret = hudson.util.Secret.fromString(privateKey);
 
         return new GitHubAppCredentials(SecretUtils.getCredentialScope(secret), SecretUtils.getCredentialId(secret), SecretUtils.getCredentialDescription(secret), appID, privateKeySecret);
 
