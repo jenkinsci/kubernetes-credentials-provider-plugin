@@ -12,5 +12,7 @@ metadata:
 type: Opaque
 stringData:
   appID: 1234
-  # Base64 encoded private key
-  privateKey: LS0tLS1CRU...
+  privateKey: |-
+    -----BEGIN PRIVATE KEY-----
+    ...
+    -----END PRIVATE KEY-----
