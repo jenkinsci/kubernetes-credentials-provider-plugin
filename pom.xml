@@ -164,19 +164,9 @@
         <version>3.9</version>
       </dependency>
       <dependency>
-        <groupId>com.squareup.okhttp3</groupId>
-        <artifactId>okhttp</artifactId>
+        <groupId>io.jenkins.plugins</groupId>
+        <artifactId>okhttp-api</artifactId>
         <version>3.14.9</version>
-      </dependency>
-      <dependency>
-        <groupId>com.squareup.okhttp3</groupId>
-        <artifactId>logging-interceptor</artifactId>
-        <version>3.14.9</version>
-      </dependency>
-      <dependency>
-        <groupId>com.squareup.okio</groupId>
-        <artifactId>okio</artifactId>
-        <version>1.17.5</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
@@ -224,6 +214,10 @@
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>github-branch-source</artifactId>
       <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>io.jenkins.plugins</groupId>
+      <artifactId>okhttp-api</artifactId>
     </dependency>
     <!-- test deps -->
     <dependency>
