@@ -29,11 +29,12 @@ import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretUtils
 import hudson.Extension;
 import io.fabric8.kubernetes.api.model.Secret;
 import org.jenkinsci.plugins.github_branch_source.GitHubAppCredentials;
+import org.jenkinsci.plugins.variant.OptionalExtension;
 
 /**
  * SecretToCredentialConvertor that converts {@link GitHubAppCredentials}.
  */
-@Extension
+@OptionalExtension(requirePlugins={"github-branch-source"})
 public class GitHubAppCredentialsConvertor extends SecretToCredentialConverter {
 
     @Override
