@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>4.2</version>
+    <version>4.18</version>
     <relativePath />
   </parent>
 
@@ -45,7 +45,7 @@
   <properties>
     <revision>0.19</revision>
     <changelist>-SNAPSHOT</changelist>
-    <jenkins.version>2.190.1</jenkins.version>
+    <jenkins.version>2.222.4</jenkins.version>
     <java.level>8</java.level>
   </properties>
 
@@ -144,7 +144,7 @@
       <dependency>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>jackson2-api</artifactId>
-        <version>2.10.2</version>
+        <version>2.12.1</version>
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -164,7 +164,7 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>kubernetes-client-api</artifactId>
-      <version>4.6.0-2</version>
+      <version>5.4.1-beta-1</version>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
@@ -186,6 +186,13 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>openstack-cloud</artifactId>
+      <exclusions>
+        <exclusion>
+          <!-- from snakeyaml-api -->
+          <groupId>org.yaml</groupId>
+          <artifactId>snakeyaml</artifactId>
+        </exclusion>
+      </exclusions>
       <optional>true</optional>
     </dependency>
       <!-- Basic Username PrivateKey -->
