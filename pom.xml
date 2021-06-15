@@ -144,7 +144,8 @@
       <dependency>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>jackson2-api</artifactId>
-        <version>2.12.1</version>
+        <version>2.12.3</version>
+
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -164,7 +165,8 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>kubernetes-client-api</artifactId>
-      <version>5.4.1-beta-1</version>
+      <version>5.4.1</version>
+
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
