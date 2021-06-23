@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Secret
+metadata:
+# this is the jenkins id.
+  name: "another-test-usernamepass"
+  labels:
+# so we know what type it is.
+    "jenkins.io/credentials-type": "usernamePassword"
+# override the credential id
+    "jenkins.io/credentials-id": "CUSTOM_ID_OF_CREDENTIAL"
+  annotations:
+# description - can not be a label as spaces are not allowed
+    "jenkins.io/credentials-description" : "credentials from Kubernetes"
+type: Opaque
+stringData:
+  username: myUsername
+  password: 'Pa$$word'

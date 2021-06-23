@@ -94,6 +94,18 @@ public class SecretUtilsTest {
     }
 
     @Test
+    public void getCredentialIdWithNameOverride() {
+        final String secretName = "a-test-name";
+        final String credentialName = "A_TEST_NAME";
+        Secret s = new SecretBuilder()
+                .withNewMetadata()
+                    .withName(secretName)
+                    .withLabels(Collections.singletonMap(SecretUtils.JENKINS_IO_CREDENTIALS_ID_LABEL, credentialName))
+                .endMetadata().build();
+        assertThat(SecretUtils.getCredentialId(s), is(credentialName));
+    }
+
+    @Test
     public void getCredentialDescription() {
         final String testDescription = "a-test-description";
         Secret s = new SecretBuilder().withNewMetadata().
