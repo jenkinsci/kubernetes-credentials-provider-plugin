@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>4.2</version>
+    <version>4.18</version>
     <relativePath />
   </parent>
 
@@ -45,8 +45,9 @@
   <properties>
     <revision>0.19</revision>
     <changelist>-SNAPSHOT</changelist>
-    <jenkins.version>2.190.1</jenkins.version>
+    <jenkins.version>2.222.4</jenkins.version>
     <java.level>8</java.level>
+    <junit5.version>5.7.2</junit5.version>
   </properties>
 
   <scm>
@@ -144,7 +145,8 @@
       <dependency>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>jackson2-api</artifactId>
-        <version>2.10.2</version>
+        <version>2.12.3</version>
+
       </dependency>
       <dependency>
         <groupId>org.apache.commons</groupId>
@@ -164,7 +166,8 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>kubernetes-client-api</artifactId>
-      <version>4.6.0-2</version>
+      <version>5.4.1</version>
+
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
@@ -186,6 +189,13 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>openstack-cloud</artifactId>
+      <exclusions>
+        <exclusion>
+          <!-- from snakeyaml-api -->
+          <groupId>org.yaml</groupId>
+          <artifactId>snakeyaml</artifactId>
+        </exclusion>
+      </exclusions>
       <optional>true</optional>
     </dependency>
       <!-- Basic Username PrivateKey -->
@@ -233,7 +243,7 @@
     <dependency>
       <groupId>io.fabric8</groupId>
       <artifactId>kubernetes-server-mock</artifactId>
-      <version>4.6.0</version>
+      <version>5.4.1</version>
       <scope>test</scope>
       <exclusions>
         <!-- fails maven enforcer because kubernetes-client has a different version
@@ -285,4 +295,19 @@
       <url>https://repo.jenkins-ci.org/public/</url>
     </pluginRepository>
   </pluginRepositories>
+
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <dependencies>
+          <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>${junit5.version}</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+    </plugins>
+  </build>
 </project>

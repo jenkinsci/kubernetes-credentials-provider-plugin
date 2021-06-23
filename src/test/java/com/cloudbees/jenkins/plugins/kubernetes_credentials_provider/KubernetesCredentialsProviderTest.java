@@ -1,13 +1,11 @@
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
 import static org.junit.Assert.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 
+import io.fabric8.kubernetes.client.WatcherException;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -23,7 +21,6 @@ import hudson.model.ItemGroup;
 import hudson.security.ACL;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import jenkins.model.Jenkins;
 import jenkins.util.Timer;
@@ -149,7 +146,7 @@ public class KubernetesCredentialsProviderTest {
         defaultMockKubernetesResponses();
         KubernetesCredentialProvider provider = new MockedKubernetesCredentialProvider();
         provider.startWatchingForSecrets();
-        provider.onClose(new KubernetesClientException("test exception"));
+        provider.onClose(new WatcherException("test exception"));
         // expect 2 requests to list
         assertRequestCount("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type", 2);
     }

@@ -23,6 +23,7 @@
  */
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
+import io.fabric8.kubernetes.client.WatcherException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -246,7 +247,7 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
     }
 
     @Override
-    public void onClose(KubernetesClientException cause) {
+    public void onClose(WatcherException cause) {
         if (cause != null) {
             LOG.log(Level.WARNING, "Secrets watch stopped unexpectedly", cause);
             LOG.log(Level.INFO, "Restating secrets watcher");

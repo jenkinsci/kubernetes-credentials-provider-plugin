@@ -196,10 +196,8 @@ public abstract class SecretUtils {
     @SuppressFBWarnings(value= {"ES_COMPARING_PARAMETER_STRING_WITH_EQ"}, justification="the string will be the same string if not mapped")
     public static String getNonNullSecretData(Secret s, String key, String exceptionMessage) throws CredentialsConvertionException {
         String mappedKey = getKeyName(s, key);
-        if (mappedKey == key) { // use String == as getKeyName(key) will return key if no custom mapping is defined)
-            return requireNonNull(s.getData().get(key), exceptionMessage, null);
-        }
-        return requireNonNull(s.getData().get(mappedKey), exceptionMessage, mappedKey);
+        Map<String, String> data = requireNonNull(s.getData(), exceptionMessage, mappedKey == key ? null : mappedKey);
+        return requireNonNull(data.get(mappedKey), exceptionMessage, mappedKey);
     }
 
     /**
