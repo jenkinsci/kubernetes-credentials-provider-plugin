@@ -73,6 +73,25 @@ public class GitHubAppCredentialsConvertorTest {
     }
 
     @Test
+    public void canConvertAValidSecretWithOwner() throws Exception {
+        GitHubAppCredentialsConvertor convertor = new GitHubAppCredentialsConvertor();
+
+        try (InputStream is = get("validWithOwner.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            assertThat("The Secret was loaded correctly from disk", notNullValue());
+            GitHubAppCredentials credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-githubapp"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+            assertThat("credential appID is mapped correctly", credential.getAppID(), is("1234"));
+            assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), is(notNullValue()));
+            assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), startsWith("-----BEGIN PRIVATE KEY-----"));
+            assertThat("credential owner is mapped correctly", credential.getOwner(), is("cookies"));
+        }
+    }
+
+    @Test
     public void canConvertAValidSecretWithNoDescription() throws Exception {
         GitHubAppCredentialsConvertor convertor = new GitHubAppCredentialsConvertor();
 
@@ -162,6 +181,18 @@ public class GitHubAppCredentialsConvertorTest {
         }
     }
 
+    @Test
+    public void failsToConvertWhenOwnerCorrupt() throws Exception {
+        GitHubAppCredentialsConvertor convertor = new GitHubAppCredentialsConvertor();
+
+        try (InputStream is = get("corruptOwner.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            convertor.convert(secret);
+            fail("Exception should have been thrown");
+        } catch (CredentialsConvertionException cex) {
+            assertThat(cex.getMessage(), containsString("invalid owner"));
+        }
+    }
 
     @Test
     public void failsToConvertWhenDataEmpty() throws Exception {

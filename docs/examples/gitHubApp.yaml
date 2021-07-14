@@ -11,6 +11,7 @@ metadata:
     "jenkins.io/credentials-description" : "credentials from Kubernetes"
 type: Opaque
 stringData:
+  owner: my-org # optional, needed when app has multiple installations
   appID: 1234
   privateKey: |-
     -----BEGIN PRIVATE KEY-----
