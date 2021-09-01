@@ -26,10 +26,10 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretToCredentialConverter;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretUtils;
-import hudson.Extension;
 import io.fabric8.kubernetes.api.model.Secret;
 import org.jenkinsci.plugins.github_branch_source.GitHubAppCredentials;
 import org.jenkinsci.plugins.variant.OptionalExtension;
+import java.util.Optional;
 
 /**
  * SecretToCredentialConvertor that converts {@link GitHubAppCredentials}.
@@ -50,14 +50,22 @@ public class GitHubAppCredentialsConvertor extends SecretToCredentialConverter {
 
         String privateKeyBase64 = SecretUtils.getNonNullSecretData(secret, "privateKey", "gitHubApp credential is missing the privateKey");
 
+        Optional<String> ownerBase64 = SecretUtils.getOptionalSecretData(secret, "owner", "gitHubApp credential is missing the owner");
+
         String appID = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(appIDBase64), "gitHubApp credential has an invalid appID (must be base64 encoded UTF-8)");
 
         String privateKey = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(privateKeyBase64), "gitHubApp credential has an invalid privateKey (must be base64 encoded data)");
 
         hudson.util.Secret privateKeySecret = hudson.util.Secret.fromString(privateKey);
 
-        return new GitHubAppCredentials(SecretUtils.getCredentialScope(secret), SecretUtils.getCredentialId(secret), SecretUtils.getCredentialDescription(secret), appID, privateKeySecret);
+        GitHubAppCredentials credentials = new GitHubAppCredentials(SecretUtils.getCredentialScope(secret), SecretUtils.getCredentialId(secret), SecretUtils.getCredentialDescription(secret), appID, privateKeySecret);
 
+        if (ownerBase64.isPresent()) {
+            String owner = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(ownerBase64.get()), "gitHubApp credential has an invalid owner (must be base64 encoded data)");
+            credentials.setOwner(owner);
+        }
+
+        return credentials;
     }
 
 }
