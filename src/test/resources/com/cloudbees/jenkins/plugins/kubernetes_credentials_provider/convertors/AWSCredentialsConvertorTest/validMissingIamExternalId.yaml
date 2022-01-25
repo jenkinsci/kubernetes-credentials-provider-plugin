@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Secret
+metadata:
+# this is the jenkins id.
+  name: "a-test-aws"
+  labels:
+# so we know what type it is.
+    "jenkins.io/credentials-type": "aws"
+  annotations:
+# description - can not be a label as spaces are not allowed
+    "jenkins.io/credentials-description" : "credentials from Kubernetes"
+    # map the accessKey field to a
+    "jenkins.io/credentials-keybinding-accessKey" : "a"
+    # map the secretKey field to s
+    "jenkins.io/credentials-keybinding-secretKey" : "s"
+    # map the iamRoleArn field to r
+    "jenkins.io/credentials-keybinding-iamRoleArn" : "r"
+    # map the iamMfaSerialNumber field to m
+    "jenkins.io/credentials-keybinding-iamMfaSerialNumber" : "m"
+type: Opaque
+data:
+# UTF-8 base64 encoded
+  a: QUJDMTIzNDU2                                                          #ABC123456
+  s: UGEkJHdvcmQ=                                                          #Pa$$word
+  r: ZWNyOmV1LXdlc3QtMTo4NmM4ZjVlYy0xY2UxLTRlOTQtODBjMi0xOGUyM2JiZDcyNGE=  #ecr:eu-west-1:86c8f5ec-1ce1-4e94-80c2-18e23bbd724a
+  m: R0FIVDEyMzQ1Njc4                                                      #GAHT12345678
