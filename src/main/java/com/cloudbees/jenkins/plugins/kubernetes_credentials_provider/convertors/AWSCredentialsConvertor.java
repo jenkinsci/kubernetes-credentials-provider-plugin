@@ -68,6 +68,13 @@ public class AWSCredentialsConvertor extends SecretToCredentialConverter {
         if (iamMfaSerialNumberBase64.isPresent()) {
             iamMfaSerialNumber = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(iamMfaSerialNumberBase64.get()), "aws credential has an invalid iamMfaSerialNumber (must be base64 encoded UTF-8)");
         }
+        
+        Optional<String> iamExternalIdBase64 = SecretUtils.getOptionalSecretData(secret, "iamExternalId", "aws credential: failed to retrieve optional parameter iamExternalId");
+        String iamExternalId = null;
+
+        if (iamExternalIdBase64.isPresent()) {
+            iamExternalId = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(iamExternalIdBase64.get()), "aws credential has an invalid iamExternalId (must be base64 encoded UTF-8)");
+        }
 
         return new AWSCredentialsImpl(
                 // Scope
@@ -83,7 +90,9 @@ public class AWSCredentialsConvertor extends SecretToCredentialConverter {
                 // IAM Role ARN
                 iamRoleArn,
                 // MFA
-                iamMfaSerialNumber
+                iamMfaSerialNumber,
+                // External ID
+                iamExternalId
         );
 
     }
