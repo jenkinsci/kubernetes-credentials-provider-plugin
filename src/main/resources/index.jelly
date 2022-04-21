@@ -1,0 +1,4 @@
+<?jelly escape-by-default='true'?>
+<div>
+  Provides a read only credentials store backed by Kubernetes.
+</div>
