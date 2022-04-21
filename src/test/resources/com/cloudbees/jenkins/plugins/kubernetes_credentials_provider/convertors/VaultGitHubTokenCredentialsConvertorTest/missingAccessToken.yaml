@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Secret
+metadata:
+# this is the jenkins id.
+  name: "a-test-vaultgithubtoken"
+  labels:
+# so we know what type it is.
+    "jenkins.io/credentials-type": "vaultGitHubToken"
+  annotations:
+# description - can not be a label as spaces are not allowed
+    "jenkins.io/credentials-description" : "credentials from Kubernetes"
+type: Opaque
+data:
+# UTF-8 base64 encoded
+  mountPath: Z2l0aHViLWplbmtpbnM=          #github-jenkins

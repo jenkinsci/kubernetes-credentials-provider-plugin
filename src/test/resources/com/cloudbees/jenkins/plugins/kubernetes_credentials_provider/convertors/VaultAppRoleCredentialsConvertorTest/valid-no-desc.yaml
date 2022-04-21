@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Secret
+metadata:
+# this is the jenkins id.
+  name: "a-test-vaultapprole"
+  labels:
+# so we know what type it is.
+    "jenkins.io/credentials-type": "vaultAppRole"
+type: Opaque
+data:
+# UTF-8 base64 encoded
+  roleId: bXlSb2xlSWQ=        #myRoleId
+  secretId: LW15U2VjcmV0SWQt  #-mySecretId-
+
