@@ -240,9 +240,15 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
                 credentials.remove(credentialId);
                 break;
             }
-            case ERROR:
+            case ERROR: {
                 // XXX  ????
                 LOG.log(Level.WARNING, "Action received of type Error. {0}", secret);
+                break;
+            }
+            case BOOKMARK: {
+                // TODO handle bookmarks for efficient reconnect
+                break;
+            }
         }
     }
 

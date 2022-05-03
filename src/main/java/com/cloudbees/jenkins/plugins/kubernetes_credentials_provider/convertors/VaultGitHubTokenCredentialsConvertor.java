@@ -28,15 +28,14 @@ import java.util.Optional;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretToCredentialConverter;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretUtils;
-import com.datapipe.jenkins.vault.credentials.VaultAppRoleCredential;
 import com.datapipe.jenkins.vault.credentials.VaultGithubTokenCredential;
-import hudson.Extension;
 import io.fabric8.kubernetes.api.model.Secret;
+import org.jenkinsci.plugins.variant.OptionalExtension;
 
 /**
  * SecretToCredentialConvertor that converts {@link com.datapipe.jenkins.vault.credentials.VaultGithubTokenCredential}.
  */
-@Extension
+@OptionalExtension(requirePlugins={"hashicorp-vault"})
 public class VaultGitHubTokenCredentialsConvertor extends SecretToCredentialConverter {
 
     @Override

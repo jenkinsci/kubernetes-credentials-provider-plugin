@@ -31,12 +31,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.jvnet.hudson.test.Issue;
-import org.mockito.ArgumentMatchers;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.*;
+import org.mockito.junit.MockitoJUnitRunner;
 import hudson.util.HistoricalSecrets;
 import jenkins.security.ConfidentialStore;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
@@ -52,9 +48,7 @@ import static org.junit.Assert.fail;
 /**
  * Tests BasicSSHUserPrivateKeyCredentialsConvertor
  */
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ConfidentialStore.class, HistoricalSecrets.class})
-@PowerMockIgnore({"javax.crypto.*" }) // https://github.com/powermock/powermock/issues/294
+@RunWith(MockitoJUnitRunner.class)
 public class BasicSSHUserPrivateKeyCredentialsConvertorTest {
 
     private String testkey = String.join("\n"
@@ -89,14 +83,15 @@ public class BasicSSHUserPrivateKeyCredentialsConvertorTest {
     );
 
 
+    private @Mock ConfidentialStore confidentialStore;
+    private @Mock MockedStatic<ConfidentialStore> confidentialStoreMockedStatic;
+
+    // return null rather than go looking up Jenkins.getInstance....
+    private @Mock MockedStatic<HistoricalSecrets> historicalSecretsMockedStatic;
+
     @Before
     public void mockConfidentialStore() {
-        PowerMockito.mockStatic(ConfidentialStore.class);
-        ConfidentialStore csMock = Mockito.mock(ConfidentialStore.class);
-        Mockito.when(ConfidentialStore.get()).thenReturn(csMock);
-        Mockito.when(csMock.randomBytes(ArgumentMatchers.anyInt())).thenAnswer( it -> new byte[ (Integer)(it.getArguments()[0])] );
-
-        PowerMockito.mockStatic(HistoricalSecrets.class); // return null rather than go looking up Jenkins.getInstance....
+        confidentialStoreMockedStatic.when(ConfidentialStore::get).thenReturn(confidentialStore);
     }
 
     @Test
