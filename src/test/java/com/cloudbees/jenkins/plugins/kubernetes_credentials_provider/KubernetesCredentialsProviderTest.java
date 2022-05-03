@@ -2,7 +2,7 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 import io.fabric8.kubernetes.client.WatcherException;
 import java.io.IOException;
@@ -29,20 +29,20 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PowerMockIgnore;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.MockedStatic;
+import org.mockito.junit.MockitoJUnitRunner;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({ExtensionList.class, Timer.class})
-@PowerMockIgnore({"okhttp3.*", "io.fabric8.*"})
+@RunWith(MockitoJUnitRunner.class)
 public class KubernetesCredentialsProviderTest {
 
     public @Rule KubernetesServer server = new KubernetesServer();
     private @Mock ScheduledExecutorService jenkinsTimer;
+
+    private @Mock(answer = Answers.CALLS_REAL_METHODS) MockedStatic<ExtensionList> extensionList;
+    private @Mock MockedStatic<Timer> timer;
 
     @Before
     public void setUp() {
@@ -51,11 +51,9 @@ public class KubernetesCredentialsProviderTest {
         // mocked to validate start watching for secrets
         ExtensionList<SecretToCredentialConverter> converters = ExtensionList.create((Jenkins) null, SecretToCredentialConverter.class);
         converters.addAll(Collections.singleton(new UsernamePasswordCredentialsConvertor()));
-        PowerMockito.mockStatic(ExtensionList.class);
-        PowerMockito.mockStatic(Timer.class);
-        PowerMockito.when(ExtensionList.lookup(AdministrativeMonitor.class)).thenReturn(monitors);
-        PowerMockito.when(ExtensionList.lookup(SecretToCredentialConverter.class)).thenReturn(converters);
-        PowerMockito.when(Timer.get()).thenReturn(jenkinsTimer);
+        extensionList.when(() -> ExtensionList.lookup(AdministrativeMonitor.class)).thenReturn(monitors);
+        extensionList.when(() -> ExtensionList.lookup(SecretToCredentialConverter.class)).thenReturn(converters);
+        timer.when(Timer::get).thenReturn(jenkinsTimer);
     }
 
     private void defaultMockKubernetesResponses() {
@@ -69,7 +67,7 @@ public class KubernetesCredentialsProviderTest {
                         .withResourceVersion("1")
                         .endMetadata()
                         .build()).always();
-        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=" + labelSelector + "&resourceVersion=1&watch=true")
+        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=" + labelSelector + "&resourceVersion=1&allowWatchBookmarks=true&watch=true")
                 .andReturn(200, null).always();
     }
 
@@ -171,7 +169,7 @@ public class KubernetesCredentialsProviderTest {
             provider.startWatchingForSecrets();
 
             assertRequestCount("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type%2Cenv%20in%20%28iat%20uat%29", 1);
-            assertRequestCountAtLeast("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type%2Cenv%20in%20%28iat%20uat%29&resourceVersion=1&watch=true", 1);
+            assertRequestCountAtLeast("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type%2Cenv%20in%20%28iat%20uat%29&resourceVersion=1&allowWatchBookmarks=true&watch=true", 1);
         } finally {
             System.clearProperty(KubernetesCredentialProvider.LABEL_SELECTOR);
         }
@@ -217,10 +215,10 @@ public class KubernetesCredentialsProviderTest {
     }
 
     private List<RecordedRequest> getRequests() throws InterruptedException {
-        int count = server.getMockServer().getRequestCount();
+        int count = server.getKubernetesMockServer().getRequestCount();
         List<RecordedRequest> requests = new LinkedList<>();
         while (count-- > 0) {
-            requests.add(server.getMockServer().takeRequest());
+            requests.add(server.getKubernetesMockServer().takeRequest());
         }
         return requests;
     }
