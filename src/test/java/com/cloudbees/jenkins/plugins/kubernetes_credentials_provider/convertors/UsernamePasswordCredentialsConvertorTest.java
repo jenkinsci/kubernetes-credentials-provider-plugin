@@ -86,6 +86,23 @@ public class UsernamePasswordCredentialsConvertorTest {
         }
     }
 
+    @Test
+    public void canConvertAValidSecretWithSpecifiedCredentialsId() throws Exception {
+        UsernamePasswordCredentialsConvertor convertor = new UsernamePasswordCredentialsConvertor();
+
+        try (InputStream is = get("validCredentialsId.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            assertThat("The Secret was loaded correctly from disk", notNullValue());
+            UsernamePasswordCredentialsImpl credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("A_TEST_USERNAMEPASS"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+            assertThat("credential username is mapped correctly", credential.getUsername(), is("myUsername"));
+            assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("Pa$$word"));
+        }
+    }
+
     @Issue("JENKINS-54313")
     @Test
     public void canConvertAValidSecretWithNoDescription() throws Exception {

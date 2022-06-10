@@ -26,6 +26,7 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
+import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl;
@@ -97,6 +98,23 @@ public class FileCredentialsConvertorTest {
             FileCredentialsImpl credential = convertor.convert(secret);
             assertThat(credential, notNullValue());
             assertThat("credential id is mapped correctly", credential.getId(), is("another-test-file"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is("secret file credential from Kubernetes"));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+            assertThat("credential username is mapped correctly", credential.getFileName(), is("mySecret.txt"));
+            assertThat("credential password is mapped correctly", credential.getSecretBytes().getPlainData(), is("Hello World!".getBytes(StandardCharsets.UTF_8)));
+        }
+    }
+
+    @Test
+    public void canConvertAValidSecretWithSpecifiedCredentialsId() throws Exception {
+        FileCredentialsConvertor convertor = new FileCredentialsConvertor();
+
+        try (InputStream is = get("validCredentialsId.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            assertThat("The Secret was loaded correctly from disk", notNullValue());
+            FileCredentialsImpl credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("ANOTHER_TEST_FILE"));
             assertThat("credential description is mapped correctly", credential.getDescription(), is("secret file credential from Kubernetes"));
             assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
             assertThat("credential username is mapped correctly", credential.getFileName(), is("mySecret.txt"));

@@ -94,6 +94,14 @@ public class SecretUtilsTest {
     }
 
     @Test
+    public void getCredentialIdWhenIdAnnotationIsPresent() {
+        final String testName = "a-test-name";
+        final String customId = "A_TEST_NAME";
+        Secret s = new SecretBuilder().withNewMetadata().addToAnnotations("jenkins.io/credentials-id", customId).endMetadata().build();
+        assertThat(SecretUtils.getCredentialId(s), is(customId));
+    }
+
+    @Test
     public void getCredentialDescription() {
         final String testDescription = "a-test-description";
         Secret s = new SecretBuilder().withNewMetadata().

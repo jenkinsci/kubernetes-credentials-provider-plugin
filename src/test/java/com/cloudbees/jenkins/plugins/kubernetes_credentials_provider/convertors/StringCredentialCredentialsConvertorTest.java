@@ -25,6 +25,7 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors
 
 import java.io.InputStream;
 
+import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import static org.junit.Assert.*;
@@ -75,6 +76,22 @@ public class StringCredentialCredentialsConvertorTest {
             StringCredentialsImpl credential = convertor.convert(secret);
             assertThat(credential, notNullValue());
             assertThat("credential id is mapped correctly", credential.getId(), is("a-test-secret"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is("secret text credential from Kubernetes"));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+            assertThat("credential text is mapped correctly", credential.getSecret().getPlainText(), is("mySecret!"));
+        }
+    }
+
+    @Test
+    public void canConvertAValidSecretWithSpecifiedCredentialsId() throws Exception {
+        StringCredentialConvertor convertor = new StringCredentialConvertor();
+
+        try (InputStream is = get("validCredentialsId.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            assertThat("The Secret was loaded correctly from disk", notNullValue());
+            StringCredentialsImpl credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("A_TEST_SECRET"));
             assertThat("credential description is mapped correctly", credential.getDescription(), is("secret text credential from Kubernetes"));
             assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
             assertThat("credential text is mapped correctly", credential.getSecret().getPlainText(), is("mySecret!"));

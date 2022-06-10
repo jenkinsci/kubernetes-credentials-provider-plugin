@@ -92,6 +92,24 @@ public class GitHubAppCredentialsConvertorTest {
     }
 
     @Test
+    public void canConvertAValidSecretWithSpecifiedCredentialsId() throws Exception {
+        GitHubAppCredentialsConvertor convertor = new GitHubAppCredentialsConvertor();
+
+        try (InputStream is = get("validCredentialsId.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            assertThat("The Secret was loaded correctly from disk", notNullValue());
+            GitHubAppCredentials credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("A_TEST_GITHUBAPP"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+            assertThat("credential appID is mapped correctly", credential.getAppID(), is("1234"));
+            assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), is(notNullValue()));
+            assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), startsWith("-----BEGIN PRIVATE KEY-----"));
+        }
+    }
+
+    @Test
     public void canConvertAValidSecretWithNoDescription() throws Exception {
         GitHubAppCredentialsConvertor convertor = new GitHubAppCredentialsConvertor();
 

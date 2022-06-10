@@ -25,6 +25,7 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors
 
 import java.io.InputStream;
 
+import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import org.junit.Before;
@@ -147,6 +148,24 @@ public class BasicSSHUserPrivateKeyCredentialsConvertorTest {
             BasicSSHUserPrivateKey credential = convertor.convert(secret);
             assertThat(credential, notNullValue());
             assertThat("credential id is mapped correctly", credential.getId(), is("jenkins-key"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is("basic user private key credential from Kubernetes"));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+            assertThat("credential username is mapped correctly", credential.getUsername(), is("jenkins"));
+            assertThat("credential privateKey is mapped correctly", credential.getPrivateKey(), is(this.testkey));
+            assertThat("credential passphrase is mapped correctly", credential.getPassphrase(), nullValue());
+        }
+    }
+
+    @Test
+    public void canConvertAValidSecretWithSpecifiedCredentialsId() throws Exception {
+        BasicSSHUserPrivateKeyCredentialsConvertor convertor = new BasicSSHUserPrivateKeyCredentialsConvertor();
+
+        try (InputStream is = get("validCredentialsId.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            assertThat("The Secret was loaded correctly from disk", notNullValue());
+            BasicSSHUserPrivateKey credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("JENKINS_KEY"));
             assertThat("credential description is mapped correctly", credential.getDescription(), is("basic user private key credential from Kubernetes"));
             assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
             assertThat("credential username is mapped correctly", credential.getUsername(), is("jenkins"));

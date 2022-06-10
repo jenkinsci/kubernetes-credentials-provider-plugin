@@ -60,6 +60,8 @@ public abstract class SecretUtils {
 
     static final String JENKINS_IO_CREDENTIALS_TYPE_LABEL = "jenkins.io/credentials-type";
 
+    static final String JENKINS_IO_CREDENTIALS_ID_LABEL = "jenkins.io/credentials-id";
+
     static final String JENKINS_IO_CREDENTIALS_SCOPE_LABEL = "jenkins.io/credentials-scope";
 
 
@@ -129,6 +131,12 @@ public abstract class SecretUtils {
      */
     public static String getCredentialId(Secret s) {
         // we must have a metadata as the label that identifies this as a Jenkins credential needs to be present
+        Map<String, String> annotations = s.getMetadata().getAnnotations();
+        if (annotations != null) {
+            String id = annotations.get(JENKINS_IO_CREDENTIALS_ID_LABEL);
+            return id == null ? s.getMetadata().getName() : id;
+        }
+
         return s.getMetadata().getName();
     }
 

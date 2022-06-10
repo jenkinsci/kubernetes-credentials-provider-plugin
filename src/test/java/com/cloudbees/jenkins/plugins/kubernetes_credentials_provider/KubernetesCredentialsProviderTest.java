@@ -4,11 +4,10 @@ import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import io.fabric8.kubernetes.client.WatcherException;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -25,6 +24,7 @@ import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import jenkins.model.Jenkins;
 import jenkins.util.Timer;
 import okhttp3.mockwebserver.RecordedRequest;
+import org.apache.commons.collections.map.LinkedMap;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -76,6 +76,7 @@ public class KubernetesCredentialsProviderTest {
         Secret s1 = createSecret("s1");
         Secret s2 = createSecret("s2");
         Secret s3 = createSecret("s3");
+        Secret s4 = createSecret("s4", "custom_id");
 
         // returns s1 and s3, the credentials map should be reset to this list
         server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type")
@@ -83,7 +84,7 @@ public class KubernetesCredentialsProviderTest {
                         .withNewMetadata()
                         .withResourceVersion("1")
                         .endMetadata()
-                        .addToItems(s1, s3)
+                        .addToItems(s1, s3, s4)
                         .build())
                 .once();
 
@@ -99,17 +100,26 @@ public class KubernetesCredentialsProviderTest {
         provider.startWatchingForSecrets();
 
         List<UsernamePasswordCredentials> credentials = provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
-        assertEquals("credentials", 2, credentials.size());
+        assertEquals("credentials", 3, credentials.size());
         assertTrue("secret s1 exists", credentials.stream().anyMatch(c -> "s1".equals(((UsernamePasswordCredentialsImpl) c).getId())));
         assertTrue("secret s3 exists", credentials.stream().anyMatch(c -> "s3".equals(((UsernamePasswordCredentialsImpl) c).getId())));
+        assertTrue("secret s4 exists", credentials.stream().anyMatch(c -> "custom_id".equals(((UsernamePasswordCredentialsImpl) c).getId())));
     }
 
     private Secret createSecret(String name) {
+        return createSecret(name, null);
+    }
+    private Secret createSecret(String name, @Nullable String idOverride) {
+        Map<String, String> annotations = new HashMap<>();
+        if (idOverride != null) {
+            annotations.put("jenkins.io/credentials-id", idOverride);
+        }
         return new SecretBuilder()
                 .withNewMetadata()
                 .withNamespace("test")
                 .withName(name)
                 .addToLabels("jenkins.io/credentials-type", "usernamePassword")
+                .addToAnnotations(annotations)
                 .endMetadata()
                 .addToData("username", "bXlVc2VybmFtZQ==")
                 .addToData("password", "UGEkJHdvcmQ=")

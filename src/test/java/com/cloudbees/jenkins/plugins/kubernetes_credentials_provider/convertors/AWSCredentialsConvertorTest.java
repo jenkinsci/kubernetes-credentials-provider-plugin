@@ -25,6 +25,7 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors
 
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
 import com.cloudbees.plugins.credentials.CredentialsScope;
+import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsImpl;
@@ -101,6 +102,25 @@ public class AWSCredentialsConvertorTest {
             AWSCredentialsImpl credential = convertor.convert(secret);
             assertThat(credential, notNullValue());
             assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+            assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(accessKey));
+            assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(secretKey));
+            assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(iamRoleArn));
+            assertThat("credential iamMfaSerialNumber is mapped correctly", credential.getIamMfaSerialNumber(), is(iamMfaSerialNumber));
+        }
+    }
+
+    @Test
+    public void canConvertAValidSecretWithSpecifiedCredentialsId() throws Exception {
+        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
+
+        try (InputStream is = get("validCredentialsId.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            assertThat("The Secret was loaded correctly from disk", notNullValue());
+            AWSCredentialsImpl credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("A_TEST_AWS"));
             assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
             assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
             assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(accessKey));

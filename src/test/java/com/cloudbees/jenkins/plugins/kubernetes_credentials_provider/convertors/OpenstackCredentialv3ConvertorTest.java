@@ -28,6 +28,7 @@ import java.io.InputStream;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 
+import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import hudson.util.HistoricalSecrets;
 
 import static org.hamcrest.CoreMatchers.containsString;
@@ -108,6 +109,26 @@ public class OpenstackCredentialv3ConvertorTest {
             OpenstackCredentialv3 credential = convertor.convert(secret);
             assertThat(credential, notNullValue());
             assertThat("credential id is mapped correctly", credential.getId(), is("test-openstack-credential-v3"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is("openstack credentials for you Jenkins in Kubernetes!"));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+            assertThat("credential userName is mapped correctly", credential.getUserName(), is("casualName"));
+            assertThat("credential userDomain is mapped correctly", credential.getUserDomain(), is("meaningfulDomain"));
+            assertThat("credential projectName is mapped correctly", credential.getProjectName(), is("simpleProject"));
+            assertThat("credential projectDomain is mapped correctly", credential.getProjectDomain(), is("everSimplerDomain"));
+            assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("s3cr3tPass"));
+        }
+    }
+
+    @Test
+    public void canConvertAValidSecretWithSpecifiedCredentialsId() throws Exception {
+        OpenstackCredentialv3Convertor convertor = new OpenstackCredentialv3Convertor();
+
+        try (InputStream is = get("validCredentialsId.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            assertThat("The Secret was loaded correctly from disk", notNullValue());
+            OpenstackCredentialv3 credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("TEST_OPENSTACK_CREDENTIAL_V3"));
             assertThat("credential description is mapped correctly", credential.getDescription(), is("openstack credentials for you Jenkins in Kubernetes!"));
             assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
             assertThat("credential userName is mapped correctly", credential.getUserName(), is("casualName"));
