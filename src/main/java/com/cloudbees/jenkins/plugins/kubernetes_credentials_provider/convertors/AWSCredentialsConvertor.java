@@ -47,13 +47,19 @@ public class AWSCredentialsConvertor extends SecretToCredentialConverter {
 
         SecretUtils.requireNonNull(secret.getData(), "aws definition contains no data");
 
-        String accessKeyBase64 = SecretUtils.getNonNullSecretData(secret, "accessKey", "aws credential is missing the accessKey");
+        Optional<String> accessKeyBase64 = SecretUtils.getOptionalSecretData(secret, "accessKey", "aws credential is missing the accessKey");
+        String accessKey = null;
 
-        String secretKeyBase64 = SecretUtils.getNonNullSecretData(secret, "secretKey", "aws credential is missing the secretKey");
+        if (accessKeyBase64.isPresent()){
+            accessKey = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(accessKeyBase64.get()), "aws credential has an invalid accessKey (must be base64 encoded UTF-8)");
+        }
 
-        String accessKey = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(accessKeyBase64), "aws credential has an invalid accessKey (must be base64 encoded UTF-8)");
+        Optional<String> secretKeyBase64 = SecretUtils.getOptionalSecretData(secret, "secretKey", "aws credential is missing the secretKey");
+        String secretKey = null;
 
-        String secretKey = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(secretKeyBase64), "aws credential has an invalid secretKey (must be base64 encoded UTF-8)");
+        if (secretKeyBase64.isPresent()){
+            secretKey = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(secretKeyBase64.get()), "aws credential has an invalid secretKey (must be base64 encoded UTF-8)");
+        }
 
         Optional<String> iamRoleArnBase64 = SecretUtils.getOptionalSecretData(secret, "iamRoleArn", "aws credential: failed to retrieve optional parameter iamRoleArn");
         String iamRoleArn = null;

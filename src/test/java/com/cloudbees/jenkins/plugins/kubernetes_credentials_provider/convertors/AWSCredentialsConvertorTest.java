@@ -185,33 +185,6 @@ public class AWSCredentialsConvertorTest {
         }
     }
 
-    @Test
-    public void failsToConvertWhenAccessKeyMissing() throws Exception {
-        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
-
-        try (InputStream is = get("missingAccessKey.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("missing the accessKey"));
-        }
-    }
-
-
-    @Test
-    public void failsToConvertWhenSecretKeyMissing() throws Exception {
-        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
-
-        try (InputStream is = get("missingSecretKey.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("missing the secretKey"));
-        }
-    }
-
     // BASE64 Corrupt
     @Test
     public void failsToConvertWhenAccessKeyCorrupt() throws Exception {
