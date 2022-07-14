@@ -185,6 +185,26 @@ public class AWSCredentialsConvertorTest {
         }
     }
 
+    @Test
+    public void canConvertAValidSecretWithNoAccessKeyAndSecretKey() throws Exception {
+        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
+
+        try (InputStream is = get("validMissingAccessKeyAndSecretKey.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            AWSCredentialsImpl credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+            assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), emptyString());
+            assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(),  emptyString());
+            assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(iamRoleArn));
+        }
+    }
+
+
+
+
     // BASE64 Corrupt
     @Test
     public void failsToConvertWhenAccessKeyCorrupt() throws Exception {
