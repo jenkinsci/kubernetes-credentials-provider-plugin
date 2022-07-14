@@ -73,7 +73,7 @@ public class UsernamePasswordCredentialsConvertorTest {
     public void canConvertAValidMappedSecret() throws Exception {
         UsernamePasswordCredentialsConvertor convertor = new UsernamePasswordCredentialsConvertor();
 
-        try (InputStream is = get("valid.yaml")) {
+        try (InputStream is = get("validMapped.yaml")) {
             Secret secret = Serialization.unmarshal(is, Secret.class);
             assertThat("The Secret was loaded correctly from disk", notNullValue());
             UsernamePasswordCredentialsImpl credential = convertor.convert(secret);

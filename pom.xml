@@ -79,28 +79,38 @@
     <dependencies>
       <dependency>
         <groupId>org.jenkins-ci</groupId>
+        <artifactId>symbol-annotation</artifactId>
+        <version>1.22</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jenkins-ci</groupId>
         <artifactId>trilead-ssh2</artifactId>
         <version>build-217-jenkins-16</version>
       </dependency>
       <dependency>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>credentials</artifactId>
-        <version>2.2.0</version>
+        <version>2.3.15</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>credentials-binding</artifactId>
+        <version>1.24</version>
       </dependency>
       <dependency>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>structs</artifactId>
-        <version>1.17</version>
+        <version>1.22</version>
       </dependency>
       <dependency>
         <groupId>org.jenkins-ci.plugins.workflow</groupId>
         <artifactId>workflow-step-api</artifactId>
-        <version>2.14</version>
+        <version>2.23</version>
       </dependency>
       <dependency>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plain-credentials</artifactId>
-        <version>1.4</version>
+        <version>1.7</version>
       </dependency>
       <dependency>
         <groupId>org.jenkins-ci.plugins</groupId>
@@ -138,6 +148,11 @@
         <version>2.7.1</version>
       </dependency>
       <dependency>
+        <groupId>com.datapipe.jenkins.plugins</groupId>
+        <artifactId>hashicorp-vault-plugin</artifactId>
+        <version>3.8.0</version>
+      </dependency>
+      <dependency>
         <groupId>org.hamcrest</groupId>
         <artifactId>hamcrest-core</artifactId>
         <version>2.2</version>
@@ -164,7 +179,6 @@
         <version>1.21</version>
       </dependency>
     </dependencies>
-
   </dependencyManagement>
 
   <dependencies>
@@ -217,7 +231,13 @@
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>github-branch-source</artifactId>
       <optional>true</optional>
-    </dependency>    
+    </dependency>
+    <!-- HashiCorp Vault App credentials -->
+    <dependency>
+      <groupId>com.datapipe.jenkins.plugins</groupId>
+      <artifactId>hashicorp-vault-plugin</artifactId>
+      <optional>true</optional>
+    </dependency>
     <!-- test deps -->
     <dependency>
       <groupId>junit</groupId>

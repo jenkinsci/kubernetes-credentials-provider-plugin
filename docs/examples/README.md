@@ -76,6 +76,24 @@ Only AWS AccessKey and SecretKey:
 {% include_relative gitHubApp.yaml %}
 {% endhighlight %}
 
+## Vault AppRole
+
+{% highlight yaml linenos %}
+{% include_relative vault-approle.yaml %}
+{% endhighlight %}
+
+## Vault GitHub Token
+
+{% highlight yaml linenos %}
+{% include_relative vault-github.yaml %}
+{% endhighlight %}
+
+## Vault Token
+
+{% highlight yaml linenos %}
+{% include_relative vault-token.yaml %}
+{% endhighlight %}
+
 # Custom field mapping
 
 Sometimes you may want the secret to be able to be consumed by another tool as well that has a different requirement for the data fields.
