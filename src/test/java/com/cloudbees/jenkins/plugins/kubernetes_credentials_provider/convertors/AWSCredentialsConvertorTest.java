@@ -186,31 +186,24 @@ public class AWSCredentialsConvertorTest {
     }
 
     @Test
-    public void failsToConvertWhenAccessKeyMissing() throws Exception {
+    public void canConvertAValidSecretWithNoAccessKeyAndSecretKey() throws Exception {
         AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
 
-        try (InputStream is = get("missingAccessKey.yaml")) {
+        try (InputStream is = get("validMissingAccessKeyAndSecretKey.yaml")) {
             Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("missing the accessKey"));
+            AWSCredentialsImpl credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+            assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), emptyString());
+            assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(),  emptyString());
+            assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(iamRoleArn));
         }
     }
 
 
-    @Test
-    public void failsToConvertWhenSecretKeyMissing() throws Exception {
-        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
 
-        try (InputStream is = get("missingSecretKey.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("missing the secretKey"));
-        }
-    }
 
     // BASE64 Corrupt
     @Test
