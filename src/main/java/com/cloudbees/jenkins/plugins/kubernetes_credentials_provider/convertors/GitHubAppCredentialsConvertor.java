@@ -54,6 +54,8 @@ public class GitHubAppCredentialsConvertor extends SecretToCredentialConverter {
 
         String appID = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(appIDBase64), "gitHubApp credential has an invalid appID (must be base64 encoded UTF-8)");
 
+        Optional<String> apiUriBase64 = SecretUtils.getOptionalSecretData(secret, "apiUri", "gitHubApp credential is missing the apiUri");
+
         String privateKey = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(privateKeyBase64), "gitHubApp credential has an invalid privateKey (must be base64 encoded data)");
 
         hudson.util.Secret privateKeySecret = hudson.util.Secret.fromString(privateKey);
@@ -63,6 +65,11 @@ public class GitHubAppCredentialsConvertor extends SecretToCredentialConverter {
         if (ownerBase64.isPresent()) {
             String owner = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(ownerBase64.get()), "gitHubApp credential has an invalid owner (must be base64 encoded data)");
             credentials.setOwner(owner);
+        }
+
+        if (apiUriBase64.isPresent()) {
+            String apiUri = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(apiUriBase64.get()), "gitHubApp credential has an invalid apiUri (must be base64 encoded data)");
+            credentials.setApiUri(apiUri);
         }
 
         return credentials;
