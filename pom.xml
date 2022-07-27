@@ -33,7 +33,7 @@
 
   <groupId>com.cloudbees.jenkins.plugins</groupId>
   <artifactId>kubernetes-credentials-provider</artifactId>
-  <version>${revision}${changelist}</version>
+  <version>${revision}.${changelist}</version>
   <packaging>hpi</packaging>
 
   <name>Kubernetes Credentials Provider</name>
@@ -43,8 +43,8 @@
   <inceptionYear>2018</inceptionYear>
 
   <properties>
-    <revision>0.23</revision>
-    <changelist>-SNAPSHOT</changelist>
+    <revision>1</revision>
+    <changelist>999999-SNAPSHOT</changelist>
     <jenkins.version>2.303.3</jenkins.version>
     <java.level>8</java.level>
     <junit5.version>5.7.2</junit5.version>
