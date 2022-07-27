@@ -13,6 +13,7 @@ type: Opaque
 stringData:
   owner: my-org # optional, needed when app has multiple installations
   appID: 1234
+  apiUri: https://github.example.com/api/v3 # optional, needed when using a GitHub Enterprise server
   privateKey: |-
     -----BEGIN PRIVATE KEY-----
     ...

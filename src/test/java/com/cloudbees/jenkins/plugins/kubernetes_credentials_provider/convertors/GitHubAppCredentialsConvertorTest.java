@@ -25,7 +25,6 @@ package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors
 
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
 import com.cloudbees.plugins.credentials.CredentialsScope;
-import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import java.io.InputStream;
@@ -88,6 +87,26 @@ public class GitHubAppCredentialsConvertorTest {
             assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), is(notNullValue()));
             assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), startsWith("-----BEGIN PRIVATE KEY-----"));
             assertThat("credential owner is mapped correctly", credential.getOwner(), is("cookies"));
+        }
+    }
+
+    @Test
+    @Issue("JENKINS-69128")
+    public void canConvertAValidSecretWithApiUri() throws Exception {
+        GitHubAppCredentialsConvertor convertor = new GitHubAppCredentialsConvertor();
+
+        try (InputStream is = get("validWithApiUri.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            assertThat("The Secret was loaded correctly from disk", notNullValue());
+            GitHubAppCredentials credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-githubapp"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+            assertThat("credential appID is mapped correctly", credential.getAppID(), is("1234"));
+            assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), is(notNullValue()));
+            assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), startsWith("-----BEGIN PRIVATE KEY-----"));
+            assertThat("credential apiUri is mapped correctly", credential.getApiUri(), is("https://github.example.com/api/v3"));
         }
     }
 
@@ -191,6 +210,20 @@ public class GitHubAppCredentialsConvertorTest {
             fail("Exception should have been thrown");
         } catch (CredentialsConvertionException cex) {
             assertThat(cex.getMessage(), containsString("invalid owner"));
+        }
+    }
+
+    @Test
+    @Issue("JENKINS-69128")
+    public void failsToConvertWhenApiUriCorrupt() throws Exception {
+        GitHubAppCredentialsConvertor convertor = new GitHubAppCredentialsConvertor();
+
+        try (InputStream is = get("corruptApiUri.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            convertor.convert(secret);
+            fail("Exception should have been thrown");
+        } catch (CredentialsConvertionException cex) {
+            assertThat(cex.getMessage(), containsString("invalid apiUri"));
         }
     }
 
