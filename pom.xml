@@ -150,7 +150,7 @@
       <dependency>
         <groupId>com.datapipe.jenkins.plugins</groupId>
         <artifactId>hashicorp-vault-plugin</artifactId>
-        <version>3.8.0</version>
+        <version>354.vdb_858fd6b_f48</version>
       </dependency>
       <dependency>
         <groupId>org.hamcrest</groupId>
