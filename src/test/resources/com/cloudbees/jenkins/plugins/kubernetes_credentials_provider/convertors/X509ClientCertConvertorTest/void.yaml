@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: "x509-void"
+  labels:
+    jenkins.io/credentials-type: "x509ClientCert"
+  annotations:
+    jenkins.io/credentials-description: "Void X.509 client certificate"
+type: Opaque
+data:
