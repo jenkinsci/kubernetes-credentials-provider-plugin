@@ -94,6 +94,12 @@ Only AWS AccessKey and SecretKey:
 {% include_relative vault-token.yaml %}
 {% endhighlight %}
 
+## X.509 client certificate
+
+{% highlight yaml linenos %}
+{% include_relative x509-client-certificate.yaml %}
+{% endhighlight %}
+
 # Custom field mapping
 
 Sometimes you may want the secret to be able to be consumed by another tool as well that has a different requirement for the data fields.
