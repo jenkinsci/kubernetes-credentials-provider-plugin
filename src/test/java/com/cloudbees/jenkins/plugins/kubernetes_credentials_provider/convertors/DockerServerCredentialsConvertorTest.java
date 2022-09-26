@@ -34,7 +34,7 @@ import java.io.IOException;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class X509ClientCertConvertorTest extends AbstractConverterTest {
+public class DockerServerCredentialsConvertorTest extends AbstractConverterTest {
 
     private final String clientCertificate = "-----BEGIN CERTIFICATE-----\n" +
             "MIIBYjCCAQygAwIBAgIJAKZlQzqGGWu9MA0GCSqGSIb3DQEBBQUAMEExCzAJBgNV\n" +
@@ -69,7 +69,7 @@ public class X509ClientCertConvertorTest extends AbstractConverterTest {
             "XoR7JjrHmbI+f1BkwSbMVxxadAWpSkk/NNI1+SHR/nYSv/loQ3UjmA==\n" +
             "-----END CERTIFICATE-----";
 
-    private X509ClientCertConvertor convertor = new X509ClientCertConvertor();
+    private DockerServerCredentialsConvertor convertor = new DockerServerCredentialsConvertor();
 
     @Test
     public void canConvert() throws Exception {

@@ -259,12 +259,6 @@
       <artifactId>docker-commons</artifactId>
       <optional>true</optional>
     </dependency>
-    <dependency>
-      <!-- Marked as optional in docker-commons plugin, specify explicitly to update required version -->
-      <groupId>org.jenkinsci.plugins</groupId>
-      <artifactId>pipeline-model-extensions</artifactId>
-      <optional>true</optional>
-    </dependency>
     <!-- test deps -->
     <dependency>
       <groupId>junit</groupId>

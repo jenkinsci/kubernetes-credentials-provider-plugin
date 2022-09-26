@@ -31,7 +31,7 @@ import org.jenkinsci.plugins.docker.commons.credentials.DockerServerCredentials;
 import org.jenkinsci.plugins.variant.OptionalExtension;
 
 @OptionalExtension(requirePlugins = {"docker-commons"})
-public class X509ClientCertConvertor extends SecretToCredentialConverter {
+public class DockerServerCredentialsConvertor extends SecretToCredentialConverter {
 
     @Override
     public boolean canConvert(String type) {
