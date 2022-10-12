@@ -35,7 +35,7 @@ import org.jenkinsci.plugins.variant.OptionalExtension;
 /**
  * SecretToCredentialConvertor that converts {@link com.datapipe.jenkins.vault.credentials.VaultAppRoleCredential}.
  */
-@OptionalExtension(requirePlugins={"hashicorp-vault"})
+@OptionalExtension(requirePlugins={"hashicorp-vault-plugin"})
 public class VaultAppRoleCredentialsConvertor extends SecretToCredentialConverter {
 
     @Override
