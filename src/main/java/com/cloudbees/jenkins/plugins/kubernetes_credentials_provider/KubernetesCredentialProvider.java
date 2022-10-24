@@ -136,11 +136,15 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
             if (reconnectClientOnException) {
                 reconnectLater();
             }
+            // Only report the latest failure
+            clearAdminMonitors(initAdminMonitorId);
             new AdministrativeError(initAdminMonitorId,
                     "Failed to initialize Kubernetes secret provider",
                     "Credentials from Kubernetes Secrets will not be available.", kex);
         } catch (LabelSelectorParseException lex) {
             LOG.log(Level.SEVERE, "Failed to initialise k8s secret provider, secrets from Kubernetes will not be available", lex);
+            // Only report the latest failure
+            clearAdminMonitors(labelSelectorAdminMonitorId);
             new AdministrativeError(labelSelectorAdminMonitorId,
                     "Failed to parse Kubernetes secret label selector",
                     "Failed to parse Kubernetes secret <a href=\"https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors\" _target=\"blank\">label selector</a> " +

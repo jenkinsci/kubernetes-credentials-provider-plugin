@@ -121,6 +121,8 @@ public class KubernetesCredentialsProviderTest {
         KubernetesCredentialProvider provider = new MockedKubernetesCredentialProvider();
         provider.startWatchingForSecrets();
         assertEquals("expect administrative error", 1, getInitAdministrativeMonitorCount());
+        provider.startWatchingForSecrets();
+        assertEquals("expect at most 1 administrative error", 1, getInitAdministrativeMonitorCount());
 
         // enable default responses
         defaultMockKubernetesResponses();
@@ -128,7 +130,7 @@ public class KubernetesCredentialsProviderTest {
         provider.startWatchingForSecrets();
         // verify we schedule reconnect task
         ArgumentCaptor<Runnable> reconnectTask = ArgumentCaptor.forClass(Runnable.class);
-        verify(jenkinsTimer).schedule(reconnectTask.capture(), eq(5L), eq(TimeUnit.MINUTES));
+        verify(jenkinsTimer, times(2)).schedule(reconnectTask.capture(), eq(5L), eq(TimeUnit.MINUTES));
         reconnectTask.getValue().run();
         assertEquals("expect administrative error to be cleared", 0, getInitAdministrativeMonitorCount());
     }
