@@ -130,7 +130,7 @@ public class KubernetesCredentialsProviderTest {
         provider.startWatchingForSecrets();
         // verify we schedule reconnect task
         ArgumentCaptor<Runnable> reconnectTask = ArgumentCaptor.forClass(Runnable.class);
-        verify(jenkinsTimer).schedule(reconnectTask.capture(), eq(5L), eq(TimeUnit.MINUTES));
+        verify(jenkinsTimer, times(2)).schedule(reconnectTask.capture(), eq(5L), eq(TimeUnit.MINUTES));
         reconnectTask.getValue().run();
         assertEquals("expect administrative error to be cleared", 0, getInitAdministrativeMonitorCount());
     }
