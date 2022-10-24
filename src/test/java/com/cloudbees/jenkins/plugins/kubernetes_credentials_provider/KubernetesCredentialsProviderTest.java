@@ -121,6 +121,8 @@ public class KubernetesCredentialsProviderTest {
         KubernetesCredentialProvider provider = new MockedKubernetesCredentialProvider();
         provider.startWatchingForSecrets();
         assertEquals("expect administrative error", 1, getInitAdministrativeMonitorCount());
+        provider.startWatchingForSecrets();
+        assertEquals("expect at most 1 administrative error", 1, getInitAdministrativeMonitorCount());
 
         // enable default responses
         defaultMockKubernetesResponses();
