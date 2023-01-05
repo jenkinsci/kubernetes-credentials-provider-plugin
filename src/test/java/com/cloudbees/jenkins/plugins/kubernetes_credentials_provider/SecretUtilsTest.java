@@ -189,7 +189,7 @@ public class SecretUtilsTest {
             SecretUtils.getNonNullSecretData(s, "some-key", "oops");
             fail();
         } catch (CredentialsConvertionException cce) {
-            assertThat(cce.getMessage(), is("oops"));
+            assertThat(cce.getMessage(), is("oops (mapped to some-key)"));
         } 
     }
 
