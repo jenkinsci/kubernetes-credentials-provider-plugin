@@ -23,6 +23,7 @@
  */
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.WatcherException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,7 +43,6 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
@@ -94,7 +94,7 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
         if (client == null) {
             ConfigBuilder cb = new ConfigBuilder();
             Config config = cb.build();
-            client = new DefaultKubernetesClient(config);
+            client = new KubernetesClientBuilder().withConfig(config).build();
         }
         return client;
     }

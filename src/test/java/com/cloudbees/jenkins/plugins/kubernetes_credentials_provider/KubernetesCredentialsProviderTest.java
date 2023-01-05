@@ -38,6 +38,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 @RunWith(MockitoJUnitRunner.class)
 public class KubernetesCredentialsProviderTest {
 
+    private static final Long EVENT_WAIT_PERIOD_MS = 10L;
+
     public @Rule KubernetesServer server = new KubernetesServer();
     private @Mock ScheduledExecutorService jenkinsTimer;
 
@@ -88,12 +90,15 @@ public class KubernetesCredentialsProviderTest {
                 .once();
 
         // expect the s2 will get dropped when the credentials map is reset to the full list
-        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type&watch=true")
-                .andReturnChunked(200, new WatchEvent(s1, "ADDED"), new WatchEvent(s2, "ADDED"))
+        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type&resourceVersion=1&allowWatchBookmarks=true&watch=true")
+                .andUpgradeToWebSocket()
+                    .open()
+                        .waitFor(EVENT_WAIT_PERIOD_MS)
+                        .andEmit(new WatchEvent(s1, "ADDED"))
+                        .waitFor(EVENT_WAIT_PERIOD_MS)
+                        .andEmit(new WatchEvent(s2, "ADDED"))
+                    .done()
                 .once();
-        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type&watch=true")
-                .andReturn(200, null)
-                .always();
 
         KubernetesCredentialProvider provider = new MockedKubernetesCredentialProvider();
         provider.startWatchingForSecrets();
