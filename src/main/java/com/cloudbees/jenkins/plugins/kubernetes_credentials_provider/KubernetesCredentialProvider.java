@@ -24,6 +24,8 @@
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
 import io.fabric8.kubernetes.client.WatcherException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -94,7 +96,10 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
         if (client == null) {
             ConfigBuilder cb = new ConfigBuilder();
             Config config = cb.build();
-            client = new DefaultKubernetesClient(config);
+            // TODO post 2.362 use jenkins.util.SetContextClassLoader
+            try (WithContextClassLoader ignored = new WithContextClassLoader(getClass().getClassLoader())) {
+                client = new DefaultKubernetesClient(config);
+            }
         }
         return client;
     }
@@ -126,7 +131,20 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
             LOG.log(Level.FINER, "registering watch");
             // XXX https://github.com/fabric8io/kubernetes-client/issues/1014
             // watch(resourceVersion, watcher) is deprecated but there is nothing to say why?
-            watch = _client.secrets().withLabelSelector(selector).withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).watch(list.getMetadata().getResourceVersion(), this);
+            try {
+                watch = _client.secrets().withLabelSelector(selector).withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).watch(list.getMetadata().getResourceVersion(), this);
+            } catch (NoSuchMethodError e) {
+                // TODO monkey patching for kubernetes-client 6.x as they broke binary compatibility; Remove once this plugin depends on kubernetes-client 6.x at compilation time.
+                Object o = _client.secrets().withLabelSelector(selector).withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL);
+                try {
+                    Method watchMethod = o.getClass().getMethod("watch", String.class, Watcher.class);
+                    watch = (Watch) watchMethod.invoke(o, list.getMetadata().getResourceVersion(), this);
+                } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException ex) {
+                    RuntimeException runtimeException = new RuntimeException(ex);
+                    runtimeException.addSuppressed(e);
+                    throw runtimeException;
+                }
+            }
             LOG.log(Level.FINER, "registered watch, retrieving secrets");
 
             // successfully initialized, clear any previous monitors
@@ -301,4 +319,18 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
         return "icon-credentials-kubernetes-store";
     }
 
+    private static class WithContextClassLoader implements AutoCloseable {
+
+        private final ClassLoader previousClassLoader;
+
+        public WithContextClassLoader(ClassLoader classLoader) {
+            this.previousClassLoader = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(classLoader);
+        }
+
+        @Override
+        public void close() {
+            Thread.currentThread().setContextClassLoader(previousClassLoader);
+        }
+    }
 }
