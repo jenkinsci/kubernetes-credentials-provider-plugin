@@ -94,7 +94,10 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
         if (client == null) {
             ConfigBuilder cb = new ConfigBuilder();
             Config config = cb.build();
-            client = new KubernetesClientBuilder().withConfig(config).build();
+            // TODO post 2.362 use jenkins.util.SetContextClassLoader
+            try (WithContextClassLoader ignored = new WithContextClassLoader(getClass().getClassLoader())) {
+                client = new KubernetesClientBuilder().withConfig(config).build();
+            }
         }
         return client;
     }
@@ -301,4 +304,18 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
         return "icon-credentials-kubernetes-store";
     }
 
+    private static class WithContextClassLoader implements AutoCloseable {
+
+        private final ClassLoader previousClassLoader;
+
+        public WithContextClassLoader(ClassLoader classLoader) {
+            this.previousClassLoader = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(classLoader);
+        }
+
+        @Override
+        public void close() {
+            Thread.currentThread().setContextClassLoader(previousClassLoader);
+        }
+    }
 }
