@@ -104,8 +104,16 @@ Only AWS AccessKey and SecretKey:
 
 Sometimes you may want the secret to be able to be consumed by another tool as well that has a different requirement for the data fields.
 In order to facilitate this the plugin supports the remapping fields.
-In order to achieve this you add an attribute begining with `jenkins.io/credentials-keybinding-` and ending with the normal field name and having the value of the new field name.
+In order to achieve this you add an attribute beginning with `jenkins.io/credentials-keybinding-` and ending with the normal field name and having the value of the new field name.
 The following example remaps the `username` and `password` fields to `user` and `pass`:
 {% highlight yaml linenos %}
 {% include_relative username-pass-with-custom-mapping.yaml %}
+{% endhighlight %}
+
+# Overriding the Credential Name
+
+By default, the name of the `Secret` will be used as the name of the credential, but as Kubernetes only allows valid DNS names as `Secret` names you may want to override this behaviour.
+In order to achieve this you need to add a label to the `Secret` with the name `jenkins.io/credentials-id` and the value of the credential name you wish to configure.
+{% highlight yaml linenos %}
+{% include_relative username-pass-with-name-override.yaml %}
 {% endhighlight %}
