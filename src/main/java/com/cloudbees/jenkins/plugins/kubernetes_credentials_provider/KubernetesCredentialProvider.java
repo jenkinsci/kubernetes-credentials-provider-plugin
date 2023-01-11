@@ -37,6 +37,7 @@ import edu.umd.cs.findbugs.annotations.CheckForNull;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import hudson.ExtensionList;
 import hudson.model.AdministrativeMonitor;
+import hudson.model.Item;
 import hudson.triggers.SafeTimerTask;
 import hudson.util.AdministrativeError;
 import io.fabric8.kubernetes.api.model.LabelSelector;
@@ -64,8 +65,10 @@ import hudson.security.ACL;
 import jenkins.model.Jenkins;
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.CredentialsStore;
 import com.cloudbees.plugins.credentials.common.IdCredentials;
+import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 
 @Extension
 public class KubernetesCredentialProvider extends CredentialsProvider implements Watcher<Secret> {
@@ -213,7 +216,9 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
             for (IdCredentials credential : credentials.values()) {
                 // is s a type of type then populate the list...
                 LOG.log(Level.FINEST, "getCredentials {0} is a possible candidate", credential.getId());
-                if (type.isAssignableFrom(credential.getClass())) {
+                if (CredentialsScope.SYSTEM == credential.getScope() && !(itemGroup instanceof Jenkins)) {
+                    LOG.log(Level.FINEST, "getCredentials {0} has SYSTEM scope, but the context is not Jenkins, ignoring", credential.getId());
+                } else if (type.isAssignableFrom(credential.getClass())) {
                     LOG.log(Level.FINEST, "getCredentials {0} matches, adding to list", credential.getId());
                     // cast to keep generics happy even though we are assignable..
                     list.add(type.cast(credential));
@@ -224,6 +229,25 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
             return list;
         }
         return emptyList();
+    }
+
+    @Override
+    @NonNull
+    public <C extends Credentials> List<C> getCredentials(@NonNull Class<C> type,
+                                                          @NonNull Item item,
+                                                          Authentication authentication) {
+        // we do not support scoping to Items, so we just need to use null to not expose SYSTEM credentials to Items.
+        Objects.requireNonNull(item);
+        return getCredentials(type, (ItemGroup)null, authentication);
+    }
+
+    @Override
+    public <C extends Credentials> List<C> getCredentials(@NonNull Class<C> type,
+            @NonNull Item item,
+            Authentication authentication,
+            List<DomainRequirement> domainRequirements) {
+        // we do not support domain requirements
+        return getCredentials(type, item, authentication);
     }
 
     @SuppressWarnings("null")

@@ -1,5 +1,9 @@
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.hamcrest.Matchers.hasProperty;
+import static org.hamcrest.Matchers.is;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -9,14 +13,17 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors.UsernamePasswordCredentialsConvertor;
+import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
 import hudson.ExtensionList;
 import hudson.model.AdministrativeMonitor;
+import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.security.ACL;
 import io.fabric8.kubernetes.api.model.*;
@@ -29,6 +36,7 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.jvnet.hudson.test.Issue;
 import org.mockito.Answers;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
@@ -43,7 +51,7 @@ public class KubernetesCredentialsProviderTest {
 
     private @Mock(answer = Answers.CALLS_REAL_METHODS) MockedStatic<ExtensionList> extensionList;
     private @Mock MockedStatic<Timer> timer;
-
+    
     @Before
     public void setUp() {
         // mocked to validate add/remove of administrative errors
@@ -73,9 +81,9 @@ public class KubernetesCredentialsProviderTest {
 
     @Test
     public void startWatchingForSecrets() {
-        Secret s1 = createSecret("s1");
-        Secret s2 = createSecret("s2");
-        Secret s3 = createSecret("s3");
+        Secret s1 = createSecret("s1", null);
+        Secret s2 = createSecret("s2", null);
+        Secret s3 = createSecret("s3", null);
 
         // returns s1 and s3, the credentials map should be reset to this list
         server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type")
@@ -104,12 +112,65 @@ public class KubernetesCredentialsProviderTest {
         assertTrue("secret s3 exists", credentials.stream().anyMatch(c -> "s3".equals(((UsernamePasswordCredentialsImpl) c).getId())));
     }
 
-    private Secret createSecret(String name) {
+    @Issue("SECURITY-3022")
+    @Test
+    public void credentialScope() {
+        Secret s1 = createSecret("s1", CredentialsScope.GLOBAL);
+        Secret s2 = createSecret("s2", CredentialsScope.SYSTEM);
+        Secret s3 = createSecret("s3", CredentialsScope.GLOBAL);
+
+        // returns s1 and s3, the credentials map should be reset to this list
+        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type")
+                .andReturn(200, new SecretListBuilder()
+                        .withNewMetadata()
+                        .withResourceVersion("1")
+                        .endMetadata()
+                        .addToItems(s1, s2, s3)
+                        .build())
+                .once();
+
+        // expect the s2 will get dropped when the credentials map is reset to the full list
+        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type&watch=true")
+                .andReturnChunked(200, new WatchEvent(s1, "ADDED"), new WatchEvent(s2, "ADDED"))
+                .once();
+        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type&watch=true")
+                .andReturn(200, null)
+                .always();
+
+        KubernetesCredentialProvider provider = new MockedKubernetesCredentialProvider();
+        provider.startWatchingForSecrets();
+
+        List<UsernamePasswordCredentials> credentials;
+
+        credentials = provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
+        assertThat("null itemgroup so system scoped credentials (s2) are *not* available", credentials,
+                containsInAnyOrder(hasProperty("id", is("s1")), hasProperty("id", is("s3"))));
+
+        credentials = provider.getCredentials(UsernamePasswordCredentials.class, mock(Jenkins.class), ACL.SYSTEM);
+        assertThat("itemgroup is Jenkins so system scoped credentials (s2) are available", credentials,
+                containsInAnyOrder(hasProperty("id", is("s1")), hasProperty("id", is("s2")), hasProperty("id", is("s3"))));
+
+        credentials = provider.getCredentials(UsernamePasswordCredentials.class, mock(ItemGroup.class), ACL.SYSTEM);
+        assertThat("itemgroup is not Jenkins so system scoped credentials (s2) are *not* available", credentials,
+                containsInAnyOrder(hasProperty("id", is("s1")), hasProperty("id", is("s3"))));
+
+        credentials = provider.getCredentials(UsernamePasswordCredentials.class, mock(Item.class), ACL.SYSTEM);
+        assertThat("items do not have access to system scoped credentials (s2) so should not be available", credentials,
+                containsInAnyOrder(hasProperty("id", is("s1")), hasProperty("id", is("s3"))));
+
+        credentials = provider.getCredentials(UsernamePasswordCredentials.class, mock(Item.class), ACL.SYSTEM, Collections.emptyList());
+        assertThat("items do not have access to system scoped credentials (s2) so should not be available", credentials,
+                containsInAnyOrder(hasProperty("id", is("s1")), hasProperty("id", is("s3"))));
+
+    }
+
+    private Secret createSecret(String name, CredentialsScope scope) {
         return new SecretBuilder()
                 .withNewMetadata()
                 .withNamespace("test")
                 .withName(name)
                 .addToLabels("jenkins.io/credentials-type", "usernamePassword")
+                .addToLabels("jenkins.io/credentials-scope", scope == null ? "global" : scope.name().toLowerCase(Locale.ROOT))
                 .endMetadata()
                 .addToData("username", "bXlVc2VybmFtZQ==")
                 .addToData("password", "UGEkJHdvcmQ=")
