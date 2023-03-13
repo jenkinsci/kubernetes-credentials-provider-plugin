@@ -51,8 +51,8 @@
   </properties>
 
   <scm>
-    <connection>scm:git:ssh://git@github.com/jenkinsci/kubernetes-credentials-provider-plugin.git</connection>
-    <developerConnection>scm:git:ssh://git@github.com/jenkinsci/kubernetes-credentials-provider-plugin.git</developerConnection>
+    <connection>scm:git:https://github.com/jenkinsci/kubernetes-credentials-provider-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/kubernetes-credentials-provider-plugin.git</developerConnection>
     <url>https://github.com/jenkinsci/kubernetes-credentials-provider-plugin</url>
     <tag>${scmTag}</tag>
   </scm>
