@@ -120,6 +120,11 @@
         <version>3.8.0</version>
       </dependency>
       <dependency>
+        <groupId>org.hamcrest</groupId>
+        <artifactId>hamcrest</artifactId>
+        <version>2.2</version>
+      </dependency>
+      <dependency>
         <groupId>org.jenkins-ci.ui</groupId>
         <artifactId>jquery-detached</artifactId>
         <version>1.2.1</version>
@@ -198,7 +203,7 @@
     </dependency>
     <dependency>
       <groupId>org.hamcrest</groupId>
-      <artifactId>hamcrest-core</artifactId>
+      <artifactId>hamcrest</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>
