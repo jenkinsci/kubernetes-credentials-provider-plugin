@@ -102,17 +102,17 @@
       <dependency>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>aws-credentials</artifactId>
-        <version>1.33</version>
+        <version>189.v3551d5642995</version>
       </dependency>
       <dependency>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>docker-commons</artifactId>
-        <version>1.16</version>
+        <version>419.v8e3cd84ef49c</version>
       </dependency>
       <dependency>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>openstack-cloud</artifactId>
-        <version>2.47</version>
+        <version>2.63</version>
         <exclusions>
           <exclusion>
             <groupId>com.squareup.okhttp3</groupId>
@@ -127,12 +127,7 @@
       <dependency>
         <groupId>com.datapipe.jenkins.plugins</groupId>
         <artifactId>hashicorp-vault-plugin</artifactId>
-        <version>3.8.0</version>
-      </dependency>
-      <dependency>
-        <groupId>org.hamcrest</groupId>
-        <artifactId>hamcrest</artifactId>
-        <version>2.2</version>
+        <version>360.v0a_1c04cf807d</version>
       </dependency>
       <dependency>
         <groupId>org.jenkins-ci.ui</groupId>
@@ -168,6 +163,7 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>openstack-cloud</artifactId>
+      <!-- https://github.com/jenkinsci/openstack-cloud-plugin/issues/367 -->
       <exclusions>
         <exclusion>
           <!-- from snakeyaml-api -->
