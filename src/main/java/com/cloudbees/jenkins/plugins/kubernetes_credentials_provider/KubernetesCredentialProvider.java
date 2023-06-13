@@ -23,9 +23,8 @@
  */
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.WatcherException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -45,7 +44,6 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.Config;
 import io.fabric8.kubernetes.client.ConfigBuilder;
-import io.fabric8.kubernetes.client.DefaultKubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
@@ -101,7 +99,7 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
             Config config = cb.build();
             // TODO post 2.362 use jenkins.util.SetContextClassLoader
             try (WithContextClassLoader ignored = new WithContextClassLoader(getClass().getClassLoader())) {
-                client = new DefaultKubernetesClient(config);
+                client = new KubernetesClientBuilder().withConfig(config).build();
             }
         }
         return client;
@@ -134,20 +132,7 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
             LOG.log(Level.FINER, "registering watch");
             // XXX https://github.com/fabric8io/kubernetes-client/issues/1014
             // watch(resourceVersion, watcher) is deprecated but there is nothing to say why?
-            try {
-                watch = _client.secrets().withLabelSelector(selector).withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).watch(list.getMetadata().getResourceVersion(), this);
-            } catch (NoSuchMethodError e) {
-                // TODO monkey patching for kubernetes-client 6.x as they broke binary compatibility; Remove once this plugin depends on kubernetes-client 6.x at compilation time.
-                Object o = _client.secrets().withLabelSelector(selector).withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL);
-                try {
-                    Method watchMethod = o.getClass().getMethod("watch", String.class, Watcher.class);
-                    watch = (Watch) watchMethod.invoke(o, list.getMetadata().getResourceVersion(), this);
-                } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException ex) {
-                    RuntimeException runtimeException = new RuntimeException(ex);
-                    runtimeException.addSuppressed(e);
-                    throw runtimeException;
-                }
-            }
+            watch = _client.secrets().withLabelSelector(selector).withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).watch(list.getMetadata().getResourceVersion(), this);
             LOG.log(Level.FINER, "registered watch, retrieving secrets");
 
             // successfully initialized, clear any previous monitors
