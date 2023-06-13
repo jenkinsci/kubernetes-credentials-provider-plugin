@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>4.50</version>
+    <version>4.65</version>
     <relativePath />
   </parent>
 
@@ -45,8 +45,8 @@
   <properties>
     <revision>1</revision>
     <changelist>999999-SNAPSHOT</changelist>
-    <jenkins.version>2.332.4</jenkins.version>
-    <bom>2.332.x</bom>
+    <jenkins.version>2.361.4</jenkins.version>
+    <bom>2.361.x</bom>
     <junit5.version>5.7.2</junit5.version>
   </properties>
 
@@ -80,7 +80,22 @@
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
         <artifactId>bom-${bom}</artifactId>
-        <version>1706.vc166d5f429f8</version>
+        <version>2102.v854b_fec19c92</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>com.squareup.okhttp3</groupId>
+        <artifactId>okhttp-bom</artifactId>
+        <!-- needs to be aligned with the version of okhttp-api in the plugin bom -->
+        <version>4.10.0</version>
+        <scope>import</scope>
+        <type>pom</type>
+      </dependency>
+      <dependency>
+        <groupId>org.jetbrains.kotlin</groupId>
+        <artifactId>kotlin-bom</artifactId>
+        <version>1.8.21</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -108,11 +123,6 @@
             <artifactId>findbugs-annotations</artifactId>
           </exclusion>
         </exclusions>
-      </dependency>
-      <dependency>
-        <groupId>org.jenkins-ci.plugins</groupId>
-        <artifactId>github-branch-source</artifactId>
-        <version>2.7.1</version>
       </dependency>
       <dependency>
         <groupId>com.datapipe.jenkins.plugins</groupId>
@@ -212,14 +222,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-inline</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>io.fabric8</groupId>
       <artifactId>kubernetes-server-mock</artifactId>
-      <version>6.3.1</version>
+      <version>6.7.1</version>
       <scope>test</scope>
       <exclusions>
         <!--
