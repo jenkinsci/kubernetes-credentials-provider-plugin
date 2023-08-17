@@ -141,7 +141,7 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>kubernetes-client-api</artifactId>
-      <version>6.3.1-206.v76d3b_6b_14db_b</version>
+      <version>6.8.1-220.v1f66736f9a_42</version>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
@@ -234,7 +234,11 @@
         </exclusion>
       </exclusions>
     </dependency>
-
+    <dependency>
+      <groupId>io.jenkins.plugins</groupId>
+      <artifactId>snakeyaml-api</artifactId>
+      <version>2.0-999999-SNAPSHOT</version>    
+    </dependency>
     <!-- static analysis -->
     <dependency>
       <groupId>com.github.spotbugs</groupId>
