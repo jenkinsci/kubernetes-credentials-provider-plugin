@@ -88,14 +88,14 @@
         <groupId>com.squareup.okhttp3</groupId>
         <artifactId>okhttp-bom</artifactId>
         <!-- needs to be aligned with the version of okhttp-api in the plugin bom -->
-        <version>4.10.0</version>
+        <version>4.11.0</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
       <dependency>
         <groupId>org.jetbrains.kotlin</groupId>
         <artifactId>kotlin-bom</artifactId>
-        <version>1.8.21</version>
+        <version>1.9.10</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -240,6 +240,22 @@
       <artifactId>spotbugs-annotations</artifactId>
       <scope>provided</scope>
       <optional>true</optional>
+    </dependency>
+
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>bouncycastle-api</artifactId>
+      <version>2.29</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>jackson2-api</artifactId>
+      <version>2.15.2-350.v0c2f3f8fc595</version>
+    </dependency>
+    <dependency>
+      <groupId>io.jenkins.plugins</groupId>
+      <artifactId>okhttp-api</artifactId>
+      <version>4.11.0-157.v6852a_a_fa_ec11</version>
     </dependency>
   </dependencies>
 
