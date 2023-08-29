@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>4.65</version>
+    <version>4.72</version>
     <relativePath />
   </parent>
 
@@ -45,8 +45,8 @@
   <properties>
     <revision>1</revision>
     <changelist>999999-SNAPSHOT</changelist>
-    <jenkins.version>2.361.4</jenkins.version>
-    <bom>2.361.x</bom>
+    <jenkins.version>2.401.1</jenkins.version>
+    <bom>2.401.x</bom>
     <junit5.version>5.7.2</junit5.version>
   </properties>
 
