@@ -234,11 +234,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <dependency>
-      <groupId>io.jenkins.plugins</groupId>
-      <artifactId>snakeyaml-api</artifactId>
-      <version>2.1-110.v4960f4074978</version>    
-    </dependency>
     <!-- static analysis -->
     <dependency>
       <groupId>com.github.spotbugs</groupId>
