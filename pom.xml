@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>4.65</version>
+    <version>4.73</version>
     <relativePath />
   </parent>
 
@@ -45,8 +45,8 @@
   <properties>
     <revision>1</revision>
     <changelist>999999-SNAPSHOT</changelist>
-    <jenkins.version>2.361.4</jenkins.version>
-    <bom>2.361.x</bom>
+    <jenkins.version>2.414.1</jenkins.version>
+    <bom>2.414.x</bom>
     <junit5.version>5.7.2</junit5.version>
   </properties>
 
@@ -80,7 +80,7 @@
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
         <artifactId>bom-${bom}</artifactId>
-        <version>2102.v854b_fec19c92</version>
+        <version>2401.v7a_d68f8d0b_09</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -88,14 +88,14 @@
         <groupId>com.squareup.okhttp3</groupId>
         <artifactId>okhttp-bom</artifactId>
         <!-- needs to be aligned with the version of okhttp-api in the plugin bom -->
-        <version>4.10.0</version>
+        <version>4.11.0</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
       <dependency>
         <groupId>org.jetbrains.kotlin</groupId>
         <artifactId>kotlin-bom</artifactId>
-        <version>1.8.21</version>
+        <version>1.9.10</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -141,7 +141,7 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>kubernetes-client-api</artifactId>
-      <version>6.3.1-206.v76d3b_6b_14db_b</version>
+      <version>6.8.1-224.vd388fca_4db_3b_</version>
     </dependency>
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
@@ -234,7 +234,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-
     <!-- static analysis -->
     <dependency>
       <groupId>com.github.spotbugs</groupId>
