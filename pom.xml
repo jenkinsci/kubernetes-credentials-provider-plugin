@@ -45,8 +45,8 @@
   <properties>
     <revision>1</revision>
     <changelist>999999-SNAPSHOT</changelist>
-    <jenkins.version>2.401.1</jenkins.version>
-    <bom>2.401.x</bom>
+    <jenkins.version>2.414.1</jenkins.version>
+    <bom>2.414.x</bom>
     <junit5.version>5.7.2</junit5.version>
   </properties>
 
@@ -80,7 +80,7 @@
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
         <artifactId>bom-${bom}</artifactId>
-        <version>2102.v854b_fec19c92</version>
+        <version>2401.v7a_d68f8d0b_09</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -133,21 +133,6 @@
         <groupId>org.jenkins-ci.ui</groupId>
         <artifactId>jquery-detached</artifactId>
         <version>1.2.1</version>
-      </dependency>
-      <dependency>
-        <groupId>org.jenkins-ci.plugins</groupId>
-        <artifactId>bouncycastle-api</artifactId>
-        <version>2.29</version>
-      </dependency>
-      <dependency>
-        <groupId>org.jenkins-ci.plugins</groupId>
-        <artifactId>jackson2-api</artifactId>
-        <version>2.15.2-350.v0c2f3f8fc595</version>
-      </dependency>
-      <dependency>
-        <groupId>io.jenkins.plugins</groupId>
-        <artifactId>okhttp-api</artifactId>
-        <version>4.11.0-157.v6852a_a_fa_ec11</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
