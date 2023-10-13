@@ -24,7 +24,7 @@ Because granting these permissions for secrets is not something that should be d
 
 ### Adding credentials
 
-Credentials are added by adding them as secrets to Kubernetes, this is covered in more detail in the [https://jenkinsci.github.io/kubernetes-credentials-provider-plugin/examples/](examples) page.
+Credentials are added by adding them as secrets to Kubernetes, this is covered in more detail in the [examples](./examples) page.
 
 To restrict the secrets added by this plugin use the system property `com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.KubernetesCredentialProvider.labelSelector`
 to set the [Kubernetes Label selector](https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors) expression.
@@ -83,4 +83,4 @@ The latest release will be visible in the Jenkins Update center approximatly 8 h
 
 # Developing
 
-This [page](dev/) contains more information on a developer environment.
+This [page](./dev/) contains more information on a developer environment.
