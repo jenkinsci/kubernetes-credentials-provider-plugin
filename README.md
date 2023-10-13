@@ -11,7 +11,7 @@ The plugin supports most common credential types and defines an [`extension poin
 
 The complete documentation is available on [this GitHub page ](https://jenkinsci.github.io/kubernetes-credentials-provider-plugin/)
 
-# Releases and Change logs
+## Releases and Changelogs
 
 The [release notes](https://github.com/jenkinsci/kubernetes-credentials-provider-plugin/releases) are managed in GitHub. 
 The latest release will be visible in the Jenkins Update center approximatly 8 hours after a release.
