@@ -14,4 +14,3 @@ The full documentation is available on [this GitHub page](https://jenkinsci.gith
 ## Releases and Changelogs
 
 The [release notes](https://github.com/jenkinsci/kubernetes-credentials-provider-plugin/releases) are managed in GitHub. 
-The latest release will be visible in the Jenkins Update center approximatly 8 hours after a release.

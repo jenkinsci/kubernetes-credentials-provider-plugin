@@ -4,7 +4,7 @@ title:  "Kubernetes Credentials Provider Plugin"
 permalink: /
 ---
 
-The *Kubernetes Credentials Provider* is a [Jenkins](https://jenkins.io) plugin to enable the retrieval of [Credentials](https://plugins.jenkins.io/credentials) directly from Kubernetes.
+The *Kubernetes Credentials Provider* is a [Jenkins](https://jenkins.io) plugin to enable the retrieval of [Credentials](https://plugins.jenkins.io/credentials) stored as [Kubernetes Secrets](https://kubernetes.io/docs/concepts/configuration/secret/).
 
 The plugin supports most common credential types and defines an [`extension point`](https://jenkins.io/doc/developer/extensions/kubernetes-credentials-provider/) that can be implemented by other plugins to add support for custom Credential types. 
 
