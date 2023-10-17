@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>4.73</version>
+    <version>4.74</version>
     <relativePath />
   </parent>
 
@@ -38,23 +38,22 @@
 
   <name>Kubernetes Credentials Provider</name>
   <description>Provides a credentials store backed by Kubernetes.</description>
-  <url>https://github.com/${gitHubRepo}</url>
+  <url>https://jenkinsci.github.io/kubernetes-credentials-provider-plugin/</url>
 
   <inceptionYear>2018</inceptionYear>
 
   <properties>
     <revision>1</revision>
     <changelist>999999-SNAPSHOT</changelist>
-    <gitHubRepo>jenkinsci/kubernetes-credentials-provider-plugin</gitHubRepo>
     <jenkins.version>2.414.1</jenkins.version>
     <bom>2.414.x</bom>
-    <junit5.version>5.7.2</junit5.version>
+    <junit5.version>5.10.0</junit5.version>
   </properties>
 
   <scm>
-    <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
-    <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
-    <url>https://github.com/${gitHubRepo}</url>
+    <connection>scm:git:https://github.com/jenkinsci/kubernetes-credentials-provider-plugin.git</connection>
+    <developerConnection>scm:git:git@github.com:jenkinsci/kubernetes-credentials-provider-plugin.git</developerConnection>
+    <url>https://github.com/jenkinsci/kubernetes-credentials-provider-plugin</url>
     <tag>${scmTag}</tag>
   </scm>
 
