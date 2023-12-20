@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: azure-managed-identity
+  namespace: "testing"
+  labels:
+    "jenkins.io/credentials-type": "azureManagedIdentity"
+    "jenkins.io/credentials-scope": "system"
+  annotations:
+    "jenkins.io/credentials-description": "Azure managed identity"
+type: Opaque
+data:
+  subscripitonId: "MTIzNDQ1NjQ1Nwo=" # 1234456457
+  clientId: "Y2xpZW50LWlkCg==" # client-id
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: azure-managed-identity
+  namespace: "testing"
+  labels:
+    "jenkins.io/credentials-type": "azureManagedIdentity"
+    "jenkins.io/credentials-scope": "system"
+  annotations:
+    "jenkins.io/credentials-description": "Azure managed identity"
+type: Opaque
+data:
+  subscripitonId: "MTIzNDQ1NjQ1Nwo=" # 1234456457
+  clientId: "Y2xpZW50LWlkCg==" # client-id
+  azureEnvironment: "QXp1cmUK" # Default to "Azure"

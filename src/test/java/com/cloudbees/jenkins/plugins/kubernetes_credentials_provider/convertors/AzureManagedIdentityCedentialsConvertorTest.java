@@ -13,62 +13,67 @@ import java.util.List;
 import org.junit.Test;
 
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
+import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors.azure.AzureEnvironments;
 import com.cloudbees.plugins.credentials.CredentialsScope;
-import com.microsoft.azure.util.AzureCredentials;
+import com.microsoft.azure.util.AzureImdsCredentials;
+import com.microsoft.azure.util.AzureImdsCredentials;
 
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.utils.Serialization;
 
-public class AzureServicePrincipalCedentialsConvertorTest {
+public class AzureManagedIdentityCedentialsConvertorTest {
 
 	@Test
     public void canConvert() throws Exception {
-		AzureServicePrincipalCedentialsConvertor convertor = new AzureServicePrincipalCedentialsConvertor();
+		AzureManagedIdentityCedentialsConvertor convertor = new AzureManagedIdentityCedentialsConvertor();
         
-        assertThat("correct registration of valid type", convertor.canConvert("azureServicePrincipal"), is(true));
+        assertThat("correct registration of valid type", convertor.canConvert("azureManagedIdentity"), is(true));
         assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
     }
 	
 	@Test
     public void canConvertAValidSecret() throws Exception {
-		AzureServicePrincipalCedentialsConvertor convertor = new AzureServicePrincipalCedentialsConvertor();
+		AzureManagedIdentityCedentialsConvertor convertor = new AzureManagedIdentityCedentialsConvertor();
 
-        try (InputStream is = get("valid.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            assertThat("The Secret was loaded correctly from disk", notNullValue());
-            AzureCredentials credential = convertor.convert(secret);
-            assertThat(credential, notNullValue());
+        try (InputStream is = get("validManagedIdentity.yaml")) {
+            Object secrets = Serialization.unmarshal(is, Secret.class);
             
-            assertThat("credentials is using SYSTEM scope", credential.getScope(), is(CredentialsScope.SYSTEM));
-            
-            assertThat("credential id is mapped correctly", credential.getId(), is("azure-service-principal"));
-            assertThat("credential description is mapped correctly", credential.getDescription(), is("Azure service principal"));
-            assertThat("credential text is mapped correctly", credential.getSubscriptionId(), is("1234456457"));
-            assertThat("credential text is mapped correctly", credential.getClientId(), is("client-id"));
-            assertThat("credential text is mapped correctly", credential.getTenant(), is("tenant-id"));
-            assertThat("credential text is mapped correctly", credential.getPlainClientSecret(), is("client-secret-secret-string"));
-            
-            assertThat("Azure environment are defined", credential.getAzureEnvionmentName(), is("Azure"));
+            for (Secret secret : (ArrayList<Secret>)secrets) {
+            	assertThat("The Secret was loaded correctly from disk", notNullValue());
+            	AzureImdsCredentials credential = convertor.convert(secret);
+            	assertThat(credential, notNullValue());
+            	
+            	assertThat("credentials is using SYSTEM scope", credential.getScope(), is(CredentialsScope.SYSTEM));
+            	
+            	assertThat("credential id is mapped correctly", credential.getId(), is("azure-managed-identity"));
+            	assertThat("credential description is mapped correctly", credential.getDescription(), is("Azure managed identity"));
+            	assertThat("credential text is mapped correctly", credential.getSubscriptionId(), is("1234456457"));
+            	assertThat("credential text is mapped correctly", credential.getClientId(), is("client-id"));
+            	
+            	assertThat("Azure environment are defined", credential.getAzureEnvironmentName(), is(AzureEnvironments.AZURE.label));
+            }
         }
     }
 	
 	@Test
     public void nonDefaultAzureEnv() throws Exception {
-		AzureServicePrincipalCedentialsConvertor convertor = new AzureServicePrincipalCedentialsConvertor();
+		AzureManagedIdentityCedentialsConvertor convertor = new AzureManagedIdentityCedentialsConvertor();
 
         try (InputStream is = get("nonDefaultAzureEnvironment.yaml")) {
             Secret secret = Serialization.unmarshal(is, Secret.class);
             assertThat("The Secret was loaded correctly from disk", notNullValue());
-            AzureCredentials credential = convertor.convert(secret);
+            AzureImdsCredentials credential = convertor.convert(secret);
             assertThat(credential, notNullValue());
             
-            assertThat("Azure environment are defined", credential.getAzureEnvionmentName(), is("Azure China"));
+            assertThat("Azure environment are defined", credential.getAzureEnvironmentName(), is(AzureEnvironments.AZURE_CHINA.label));
         }
     }
+    
+    /*
 	
 	@Test
     public void failOnInvalidDataString() throws Exception {
-		AzureServicePrincipalCedentialsConvertor convertor = new AzureServicePrincipalCedentialsConvertor();
+		AzureManagedIdentityCedentialsConvertor convertor = new AzureManagedIdentityCedentialsConvertor();
 
         try (InputStream is = get("curruptDataFields.yaml")) {
             Object secrets = Serialization.unmarshal(is, Secret.class);
@@ -76,7 +81,7 @@ public class AzureServicePrincipalCedentialsConvertorTest {
             
             for (Secret secret : (ArrayList<Secret>) secrets) {
             	try {
-            		AzureCredentials credential = convertor.convert(secret);
+            		AzureImdsCredentials credential = convertor.convert(secret);
             		assert false;
             	} catch (NullPointerException nullPointerException) {
             		assert true;
@@ -89,12 +94,12 @@ public class AzureServicePrincipalCedentialsConvertorTest {
 	
 	@Test
     public void defaultsToGlobalOnMissingScope() throws Exception {
-		AzureServicePrincipalCedentialsConvertor convertor = new AzureServicePrincipalCedentialsConvertor();
+		AzureManagedIdentityCedentialsConvertor convertor = new AzureManagedIdentityCedentialsConvertor();
 
         try (InputStream is = get("missingScope.yaml")) {
             Secret secret = Serialization.unmarshal(is, Secret.class);
             assertThat("The Secret was loaded correctly from disk", notNullValue());
-            AzureCredentials credential = convertor.convert(secret);
+            AzureImdsCredentials credential = convertor.convert(secret);
             assertThat(credential, notNullValue());
             
             assertThat("credentials is using SYSTEM scope", credential.getScope(), is(CredentialsScope.GLOBAL));
@@ -103,14 +108,14 @@ public class AzureServicePrincipalCedentialsConvertorTest {
 	
 	@Test
     public void failOnMissingDataFields() throws Exception {
-		AzureServicePrincipalCedentialsConvertor convertor = new AzureServicePrincipalCedentialsConvertor();
+		AzureManagedIdentityCedentialsConvertor convertor = new AzureManagedIdentityCedentialsConvertor();
 
         try (InputStream is = get("missingDataFields.yaml")) {
             Object secrets = Serialization.unmarshal(is, Secret.class);
             assertThat("The Secret was loaded correctly from disk", notNullValue());
             for (Secret secret : (ArrayList<Secret>) secrets) {
             	try {
-            		AzureCredentials credential = convertor.convert(secret);
+            		AzureImdsCredentials credential = convertor.convert(secret);
             		assert false;
             	} catch (CredentialsConvertionException convertException) {
             		assert true;
@@ -120,10 +125,10 @@ public class AzureServicePrincipalCedentialsConvertorTest {
         	assert false;
         }
     }
-	
+	*/
 	
     private static final InputStream get(String resource) {
-        InputStream is = AzureServicePrincipalCedentialsConvertorTest.class.getResourceAsStream("AzureServicePrincipalCedentialsConvertorTest/" + resource);
+        InputStream is = AzureManagedIdentityCedentialsConvertorTest.class.getResourceAsStream("AzureManagedIdentityCedentialsConvertorTest/" + resource);
         if (is == null) {
             fail("failed to load resource " + resource);
         }

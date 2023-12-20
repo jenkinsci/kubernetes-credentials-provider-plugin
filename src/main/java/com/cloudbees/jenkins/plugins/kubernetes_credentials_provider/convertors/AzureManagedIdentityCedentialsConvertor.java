@@ -31,49 +31,49 @@ import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretToCre
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretUtils;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors.azure.AzureEnvironments;
 import com.cloudbees.plugins.credentials.CredentialsScope;
-import com.microsoft.azure.util.AzureCredentials;
+import com.microsoft.azure.util.AzureImdsCredentials;
 
 import io.fabric8.kubernetes.api.model.Secret;
 
 /**
- * SecretToCredentialConvertor that converts {@link om.microsoft.azure.util.AzureCredentials.ServicePrincipal}.
+ * SecretToCredentialConvertor that converts {@link om.microsoft.azure.util.azureManagedIdentity.ServicePrincipal}.
  */
 @OptionalExtension(requirePlugins={"azure-credentials"})
-public class AzureServicePrincipalCedentialsConvertor extends SecretToCredentialConverter {
+public class AzureManagedIdentityCedentialsConvertor extends SecretToCredentialConverter {
 
     @Override
     public boolean canConvert(String type) {
-        return "azureServicePrincipal".equals(type);
+        return "azureManagedIdentity".equals(type);
     }
 
     @Override
-    public AzureCredentials convert(Secret secret) throws CredentialsConvertionException {
+    public AzureImdsCredentials convert(Secret secret) throws CredentialsConvertionException {
     	// ensure we have some data
-        SecretUtils.requireNonNull(secret.getData(), "azureCredentials kubernetes definition contains no data");
+        SecretUtils.requireNonNull(secret.getData(), "azureManagedIdentity kubernetes definition contains no data");
         
         String credsId = SecretUtils.getCredentialId(secret);
         String description = SecretUtils.getCredentialDescription(secret);
         CredentialsScope scope = SecretUtils.getCredentialScope(secret);
 
         // Assuming this is a service principal creds type
-        String subscriptionId = SecretUtils.base64DecodeToString(SecretUtils.getNonNullSecretData(secret, "subscripitonId", "azureCredentials service principal credential is missing the subscriptionId")).trim();
-        String clientId = SecretUtils.base64DecodeToString(SecretUtils.getNonNullSecretData(secret, "clientId", "azureCredentials service principal credential is missing the clientId")).trim();
-        String clientSecret = SecretUtils.base64DecodeToString(SecretUtils.getNonNullSecretData(secret, "clientSecret", "azureCredentials service principal credential is missing the clientSecret")).trim();
-        String tenantId = SecretUtils.base64DecodeToString(SecretUtils.getNonNullSecretData(secret, "tenantId", "azureCredentials service principal credential is missing the tenantId")).trim();
+        String subscriptionId = SecretUtils.base64DecodeToString(SecretUtils.getNonNullSecretData(secret, "subscripitonId", "azureManagedIdentity service principal credential is missing the subscriptionId")).trim();
+        String clientId = SecretUtils.base64DecodeToString(SecretUtils.getNonNullSecretData(secret, "clientId", "azureManagedIdentity service principal credential is missing the clientId")).trim();
         
-        AzureCredentials azureCredentials = new AzureCredentials(scope, credsId, description, subscriptionId, clientId, hudson.util.Secret.fromString(clientSecret));
-        // Configure credentials against the correct Azure environment
-        azureCredentials.setTenant(tenantId);
+        AzureImdsCredentials azureImdsCredentials;
         
+        String azureEnvironment;
         try {
-        	String azureEnvironment = SecretUtils.base64DecodeToString(SecretUtils.getNonNullSecretData(secret, "azureEnvironment", 
-        			"azureCredentials service principal credential is missing the azureEnvironment. Defaults to \"Azure\"")).trim();
-        	azureCredentials.setAzureEnvironmentName(AzureEnvironments.valueOfLabel(azureEnvironment).label);
+        	azureEnvironment = SecretUtils.base64DecodeToString(SecretUtils.getNonNullSecretData(secret, "azureEnvironment", 
+        			"azureManagedIdentity service principal credential is missing the azureEnvironment. Defaults to \"Azure\"")).trim();
         } catch (CredentialsConvertionException convertionException) {
-			azureCredentials.setAzureEnvironmentName(AzureEnvironments.AZURE.label);
+        	azureEnvironment = AzureEnvironments.AZURE.label;
 		}
-
-    	return azureCredentials;
+        azureImdsCredentials = new AzureImdsCredentials(scope, credsId, description, azureEnvironment);
+        
+        azureImdsCredentials.setClientId(clientId);
+        azureImdsCredentials.setSubscriptionId(subscriptionId);
+        
+    	return azureImdsCredentials;
     }
 
 }
