@@ -35,7 +35,7 @@ import com.microsoft.azure.util.AzureCredentials;
 import io.fabric8.kubernetes.api.model.Secret;
 
 /**
- * SecretToCredentialConvertor that converts {@link om.microsoft.azure.util.AzureCredentials}.
+ * SecretToCredentialConvertor that converts {@link om.microsoft.azure.util.AzureCredentials.ServicePrincipal}.
  */
 @OptionalExtension(requirePlugins={"azure-credentials"})
 public class AzureServicePrincipalCedentialsConvertor extends SecretToCredentialConverter {
@@ -52,15 +52,15 @@ public class AzureServicePrincipalCedentialsConvertor extends SecretToCredential
         
         String credsId = SecretUtils.getCredentialId(secret);
         String description = SecretUtils.getCredentialDescription(secret);
+        CredentialsScope scope = SecretUtils.getCredentialScope(secret);
 
         // Assuming this is a service principal creds type
-        String subscriptionId = SecretUtils.getNonNullSecretData(secret, "subscripitonId", "azureCredentials service principal credential is missing the subscriptionId");
-        String clientId = SecretUtils.getNonNullSecretData(secret, "clientId", "azureCredentials service principal credential is missing the clientId");
-        String clientSecret = SecretUtils.getNonNullSecretData(secret, "clientSecret", "azureCredentials service principal credential is missing the clientSecret");
-        String tenantId = SecretUtils.getNonNullSecretData(secret, "tenantId", "azureCredentials service principal credential is missing the tenantId");
+        String subscriptionId = SecretUtils.base64DecodeToString(SecretUtils.getNonNullSecretData(secret, "subscripitonId", "azureCredentials service principal credential is missing the subscriptionId")).trim();
+        String clientId = SecretUtils.base64DecodeToString(SecretUtils.getNonNullSecretData(secret, "clientId", "azureCredentials service principal credential is missing the clientId")).trim();
+        String clientSecret = SecretUtils.base64DecodeToString(SecretUtils.getNonNullSecretData(secret, "clientSecret", "azureCredentials service principal credential is missing the clientSecret")).trim();
+        String tenantId = SecretUtils.base64DecodeToString(SecretUtils.getNonNullSecretData(secret, "tenantId", "azureCredentials service principal credential is missing the tenantId")).trim();
         
-        
-        AzureCredentials azureCredentials = new AzureCredentials(CredentialsScope.SYSTEM, credsId, description, subscriptionId, clientId, hudson.util.Secret.fromString(clientSecret));
+        AzureCredentials azureCredentials = new AzureCredentials(scope, credsId, description, subscriptionId, clientId, hudson.util.Secret.fromString(clientSecret));
         // Configure credentials against the correct Azure environment
         azureCredentials.setTenant(tenantId);
         azureCredentials.setAzureEnvironmentName("Azure");

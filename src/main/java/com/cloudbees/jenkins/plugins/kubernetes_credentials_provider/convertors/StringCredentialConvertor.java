@@ -39,7 +39,8 @@ public class StringCredentialConvertor extends SecretToCredentialConverter {
 
     @Override
     public boolean canConvert(String type) {
-        return "secretText".equals(type);
+
+    	return "secretText".equals(type);
     }
 
     @Override
