@@ -130,6 +130,11 @@
         <version>360.v0a_1c04cf807d</version>
       </dependency>
       <dependency>
+	    <groupId>org.jenkins-ci.plugins</groupId>
+	    <artifactId>azure-credentials</artifactId>
+	    <version>254.v64da_8176c83a</version>
+	  </dependency>
+      <dependency>
         <groupId>org.jenkins-ci.ui</groupId>
         <artifactId>jquery-detached</artifactId>
         <version>1.2.1</version>
@@ -143,6 +148,12 @@
       <artifactId>kubernetes-client-api</artifactId>
       <version>6.8.1-224.vd388fca_4db_3b_</version>
     </dependency>
+    <!-- Overriding cersion to avoid seeing the "java.lang.IncompatibleClassChangeError: Found class io.fabric8.kubernetes.api.model.VolumeFluent$EmptyDirNested, but interface was expected " error -->
+<!--    <dependency>-->
+<!--	  <groupId>io.fabric8</groupId>-->
+<!--	  <artifactId>kubernetes-client</artifactId>-->
+<!--	  <version>6.9.2</version>-->
+<!--	</dependency>-->
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>credentials</artifactId>
@@ -195,6 +206,11 @@
       <groupId>com.datapipe.jenkins.plugins</groupId>
       <artifactId>hashicorp-vault-plugin</artifactId>
       <optional>true</optional>
+    </dependency>
+    <dependency>
+	  <groupId>org.jenkins-ci.plugins</groupId>
+	  <artifactId>azure-credentials</artifactId>
+	  <optional>true</optional>
     </dependency>
     <!-- X.509 client certificate credentials -->
     <dependency>
