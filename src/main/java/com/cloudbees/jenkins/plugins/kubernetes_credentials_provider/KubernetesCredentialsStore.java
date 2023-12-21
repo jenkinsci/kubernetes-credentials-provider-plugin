@@ -9,9 +9,11 @@ import org.jenkins.ui.icon.Icon;
 import org.jenkins.ui.icon.IconSet;
 import org.jenkins.ui.icon.IconType;
 import org.kohsuke.stapler.export.ExportedBean;
+import hudson.model.Item;
 import hudson.model.ItemGroup;
 import hudson.model.ModelObject;
 import hudson.security.ACL;
+import hudson.security.AccessControlled;
 import hudson.security.Permission;
 import jenkins.model.Jenkins;
 import com.cloudbees.plugins.credentials.Credentials;
@@ -47,8 +49,24 @@ public class KubernetesCredentialsStore extends CredentialsStore {
     @NonNull
     @Override
     public List<Credentials> getCredentials(@NonNull Domain domain) {
-        if(Jenkins.getInstance().hasPermission(CredentialsProvider.VIEW)) {
-                return provider.getCredentials(Credentials.class, context, ACL.SYSTEM);
+        // Only the global domain is supported
+        if (!Domain.global().equals(domain)) {
+            return Collections.emptyList();
+        }
+
+        AccessControlled ac = null;
+        ItemGroup<?> ig = context;
+        while (ac == null) {
+            if (ig instanceof AccessControlled) {
+                ac = (AccessControlled)ig;
+            } else if(ig instanceof Item){
+                ig = ((Item) ig).getParent();
+            } else {
+                break;
+            }
+        }
+        if (ac == null || ac.hasPermission(CredentialsProvider.VIEW)) {
+            return provider.getCredentials(Credentials.class, context, ACL.SYSTEM);
         }
         return Collections.emptyList();
     }

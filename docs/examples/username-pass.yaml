@@ -9,8 +9,8 @@ metadata:
   annotations:
 # description - can not be a label as spaces are not allowed
     "jenkins.io/credentials-description" : "credentials from Kubernetes"
-# job/folder scope - optional - individual items must begin and end with '/'
-    jenkins.io/credentials-item-group: ["/job/thisIsJobA/", "/job/thisIsJobB/job/nestedJob/"]
+# folder/job scope - optional
+    jenkins.io/credentials-store-locations: "['thisIsJobA', 'thisIsJobB', 'thisIsFolderA/thisIsJobC']"
 type: Opaque
 stringData:
   username: myUsername

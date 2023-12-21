@@ -88,7 +88,7 @@ public class KubernetesCredentialsProviderTest {
     @Test
     public void startWatchingForSecrets_Scoped() throws IOException {
         Map<String, String> s4Annotations = new HashMap<>();
-        s4Annotations.put(SecretUtils.JENKINS_IO_CREDENTIALS_ITEM_GROUP_ANNOTATION, "[/my-item-group/]");
+        s4Annotations.put(SecretUtils.JENKINS_IO_CREDENTIALS_ITEM_GROUP_ANNOTATION, "['my-item-group']");
         Secret s4 = createSecret("s4", Map.of(), s4Annotations);
 
         server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type")
@@ -104,7 +104,7 @@ public class KubernetesCredentialsProviderTest {
         provider.startWatchingForSecrets();
 
         ItemGroup group = mock(ItemGroup.class);
-        when(group.getUrl()).thenReturn("my-item-group/");
+        when(group.getFullName()).thenReturn("my-item-group");
 
         List<UsernamePasswordCredentials> credentials = provider.getCredentials(UsernamePasswordCredentials.class, group, ACL.SYSTEM);
         assertEquals("credentials", 1, credentials.size());
