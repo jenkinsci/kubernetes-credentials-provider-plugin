@@ -78,7 +78,7 @@ public class AzureServicePrincipalCedentialsConvertorTest {
             	try {
             		AzureCredentials credential = convertor.convert(secret);
             		assert false;
-            	} catch (NullPointerException nullPointerException) {
+            	} catch (CredentialsConvertionException convertionException) {
             		assert true;
             	} catch (Exception e) {
             		assert false;

@@ -56,18 +56,47 @@ public class AzureServicePrincipalCedentialsConvertor extends SecretToCredential
         CredentialsScope scope = SecretUtils.getCredentialScope(secret);
 
         // Assuming this is a service principal creds type
-        String subscriptionId = SecretUtils.base64DecodeToString(SecretUtils.getNonNullSecretData(secret, "subscripitonId", "azureCredentials service principal credential is missing the subscriptionId")).trim();
-        String clientId = SecretUtils.base64DecodeToString(SecretUtils.getNonNullSecretData(secret, "clientId", "azureCredentials service principal credential is missing the clientId")).trim();
-        String clientSecret = SecretUtils.base64DecodeToString(SecretUtils.getNonNullSecretData(secret, "clientSecret", "azureCredentials service principal credential is missing the clientSecret")).trim();
-        String tenantId = SecretUtils.base64DecodeToString(SecretUtils.getNonNullSecretData(secret, "tenantId", "azureCredentials service principal credential is missing the tenantId")).trim();
+        String subscriptionIdBase64 = SecretUtils.getNonNullSecretData(secret, "subscripitonId", "azureCredentials service principal credential is missing the subscriptionId");
+        String subscriptionId       = SecretUtils.base64DecodeToString(subscriptionIdBase64);
+        if (subscriptionId != null && subscriptionId.length() > 0) {
+        	subscriptionId = subscriptionId.trim();
+        } else {
+        	throw new CredentialsConvertionException("Can't continue as subscriptionId is empty");
+        }
+        
+        String clientIdBse64 = SecretUtils.getNonNullSecretData(secret, "clientId", "azureCredentials service principal credential is missing the clientId");
+        String clientId		 = SecretUtils.base64DecodeToString(clientIdBse64);
+        if (clientId != null && clientId.length() > 0) {
+        	clientId = clientId.trim();
+        } else {
+        	throw new CredentialsConvertionException("Can't continue as clientId is empty");
+        }
+        
+        String clientSecretBase64 = SecretUtils.getNonNullSecretData(secret, "clientSecret", "azureCredentials service principal credential is missing the clientSecret");
+        String clientSecret		  = SecretUtils.base64DecodeToString(clientSecretBase64);
+        if (clientSecret != null && clientSecret.length() > 0) {
+        	clientSecret = clientSecret.trim();
+        } else {
+        	throw new CredentialsConvertionException("Can't continue as clientSecret is empty");
+        }
+        
+        String tenantIdBase64 = SecretUtils.getNonNullSecretData(secret, "tenantId", "azureCredentials service principal credential is missing the tenantId");
+        String tenantId		  = SecretUtils.base64DecodeToString(tenantIdBase64);
+        if (tenantId != null && tenantId.length() > 0) {
+        	tenantId = tenantId.trim();
+        } else {
+        	throw new CredentialsConvertionException("Can't continue as tenantId is empty");
+        }
         
         AzureCredentials azureCredentials = new AzureCredentials(scope, credsId, description, subscriptionId, clientId, hudson.util.Secret.fromString(clientSecret));
         // Configure credentials against the correct Azure environment
         azureCredentials.setTenant(tenantId);
         
+        
         try {
         	String azureEnvironment = SecretUtils.base64DecodeToString(SecretUtils.getNonNullSecretData(secret, "azureEnvironment", 
-        			"azureCredentials service principal credential is missing the azureEnvironment. Defaults to \"Azure\"")).trim();
+        			"azureCredentials service principal credential is missing the azureEnvironment. Defaults to \"Azure\""));
+        	azureEnvironment = (azureEnvironment != null) ? azureEnvironment.trim() : "";
         	azureCredentials.setAzureEnvironmentName(AzureEnvironments.valueOfLabel(azureEnvironment).label);
         } catch (CredentialsConvertionException convertionException) {
 			azureCredentials.setAzureEnvironmentName(AzureEnvironments.AZURE.label);

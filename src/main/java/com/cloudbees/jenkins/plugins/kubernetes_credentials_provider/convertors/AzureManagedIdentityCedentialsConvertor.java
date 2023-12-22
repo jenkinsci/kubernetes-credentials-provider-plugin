@@ -59,11 +59,19 @@ public class AzureManagedIdentityCedentialsConvertor extends SecretToCredentialC
         // Assuming this is a service principal creds type
         String subscriptionIdBase64 = SecretUtils.getNonNullSecretData(secret, "subscripitonId", "azureManagedIdentity service principal credential is missing the subscriptionId");
         String subscriptionId       = (subscriptionIdBase64 != null && subscriptionIdBase64.length() > 0) ? SecretUtils.base64DecodeToString(subscriptionIdBase64) : "";
-        subscriptionId = (subscriptionId != null) ? subscriptionId.trim() : "";
+        if (subscriptionId != null && subscriptionId.length() > 0) {
+        	subscriptionId = subscriptionId.trim();
+        } else {
+        	throw new CredentialsConvertionException("Can't continue as subscriptionId is empty");
+        }
         
         String clientIdBase64 = SecretUtils.getNonNullSecretData(secret, "clientId", "azureManagedIdentity service principal credential is missing the clientId");
         String clientId       = (clientIdBase64 != null && clientIdBase64.length() > 0) ? SecretUtils.base64DecodeToString(clientIdBase64) : "";
-        clientId = (clientId != null) ? clientId.trim() : "";
+        if (clientId != null && clientId.length() > 0) {
+        	clientId = clientId.trim();
+        } else {
+        	throw new CredentialsConvertionException("Can't continue as clientId is empty");
+        }
         
         AzureImdsCredentials azureImdsCredentials;
         
@@ -71,11 +79,16 @@ public class AzureManagedIdentityCedentialsConvertor extends SecretToCredentialC
         try {
         	azureEnvironment = SecretUtils.base64DecodeToString(SecretUtils.getNonNullSecretData(secret, "azureEnvironment", 
         			"azureManagedIdentity service principal credential is missing the azureEnvironment. Defaults to \"Azure\""));
-        	azureEnvironment = (azureEnvironment != null) ? azureEnvironment : "";
+        	if (azureEnvironment != null && azureEnvironment.length() > 0) {
+        		azureEnvironment = azureEnvironment.trim();
+        	} else {
+        		// We defaults to "Azure"
+        		azureEnvironment = AzureEnvironments.AZURE.label;
+        	}
         } catch (CredentialsConvertionException convertionException) {
         	azureEnvironment = AzureEnvironments.AZURE.label;
 		}
-        azureImdsCredentials = new AzureImdsCredentials(scope, credsId, description, azureEnvironment.trim());
+        azureImdsCredentials = new AzureImdsCredentials(scope, credsId, description, azureEnvironment);
         
         azureImdsCredentials.setClientId(clientId.trim());
         azureImdsCredentials.setSubscriptionId(subscriptionId.trim());
