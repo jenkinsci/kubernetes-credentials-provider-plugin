@@ -42,8 +42,16 @@ public class KubernetesCredentialsStore extends CredentialsStore {
 
     @Override
     public boolean hasPermission(@NonNull Authentication authentication, @NonNull Permission permission) {
-        return CredentialsProvider.VIEW.equals(permission) &&
-               Jenkins.getInstance().getACL().hasPermission(authentication, permission);
+        if(!CredentialsProvider.VIEW.equals(permission)) {
+            return false;
+        }
+
+        AccessControlled ac = getAccessControlledContext();
+        if(ac != null) {
+            return ac.hasPermission(permission);
+        }
+
+        return Jenkins.getInstance().getACL().hasPermission(authentication, permission);
     }
 
     @NonNull
@@ -54,6 +62,22 @@ public class KubernetesCredentialsStore extends CredentialsStore {
             return Collections.emptyList();
         }
 
+        AccessControlled ac = getAccessControlledContext();
+        if(ac == null) {
+            if(Jenkins.getInstance().getACL().hasPermission(CredentialsProvider.VIEW)){
+                return provider.getCredentials(Credentials.class, context, ACL.SYSTEM);
+            }
+        } else {
+            if(ac.hasPermission(CredentialsProvider.VIEW)) {
+                return provider.getCredentials(Credentials.class, context, ACL.SYSTEM);
+            }
+        }
+
+        return Collections.emptyList();
+    }
+
+    @Nullable
+    private AccessControlled getAccessControlledContext() {
         AccessControlled ac = null;
         ItemGroup<?> ig = context;
         while (ac == null) {
@@ -65,10 +89,7 @@ public class KubernetesCredentialsStore extends CredentialsStore {
                 break;
             }
         }
-        if (ac == null || ac.hasPermission(CredentialsProvider.VIEW)) {
-            return provider.getCredentials(Credentials.class, context, ACL.SYSTEM);
-        }
-        return Collections.emptyList();
+        return ac;
     }
 
     @Override
