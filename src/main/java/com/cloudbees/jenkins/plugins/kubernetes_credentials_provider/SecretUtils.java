@@ -29,12 +29,16 @@ import java.nio.charset.CharacterCodingException;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CodingErrorAction;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Locale;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import edu.umd.cs.findbugs.annotations.CheckForNull;
@@ -62,6 +66,8 @@ public abstract class SecretUtils {
 
     static final String JENKINS_IO_CREDENTIALS_SCOPE_LABEL = "jenkins.io/credentials-scope";
 
+    /** Optional annotation containing a list of job folders this credential is available to */
+    static final String JENKINS_IO_CREDENTIALS_ITEM_GROUP_ANNOTATION = "jenkins.io/credentials-store-locations";
 
     /**
      * Convert a String representation of the base64 encoded bytes of a UTF-8 String back to a String. 
@@ -113,6 +119,10 @@ public abstract class SecretUtils {
         CredentialsScope scope = CredentialsScope.GLOBAL;
         String label = s.getMetadata().getLabels().get(JENKINS_IO_CREDENTIALS_SCOPE_LABEL);
         if (label != null) {
+            if(!getCredentialItemScopes(s).isEmpty()) {
+                throw new CredentialsConvertionException(JENKINS_IO_CREDENTIALS_SCOPE_LABEL + " can not be combined with " +
+                        JENKINS_IO_CREDENTIALS_ITEM_GROUP_ANNOTATION);
+            }
             try {
                 scope = CredentialsScope.valueOf(label.toUpperCase(Locale.ROOT));
             } catch (IllegalArgumentException exception) {
@@ -120,6 +130,31 @@ public abstract class SecretUtils {
             }
         }
         return scope;
+    }
+
+    /**
+     * Gets all item-group scopes from a secret.
+     * Format of the annotation: "['thisIsJobA', 'thisIsJobB', 'thisIsJobC/thisIsJobD']"
+     *
+     * @param s the secret whose item-group scope we want to obtain.
+     * @return a set of all item-group scopes
+     */
+    public static Set<String> getCredentialItemScopes(Secret s) {
+        String itemListString = s.getMetadata().getAnnotations().get(SecretUtils.JENKINS_IO_CREDENTIALS_ITEM_GROUP_ANNOTATION);
+        if (itemListString == null) {
+            return Collections.emptySet();
+        }
+        if(!itemListString.startsWith("[") || !itemListString.endsWith("]")) {
+            return Collections.emptySet();
+        }
+        itemListString = itemListString.trim();
+        itemListString = itemListString.substring(1, itemListString.length()-1);
+
+        return Arrays.stream(itemListString.split(", "))
+                .filter(p -> !p.isEmpty())
+                .map(String::trim)
+                .map(p -> p.substring(1, p.length()-1))
+                .collect(Collectors.toSet());
     }
 
     /**

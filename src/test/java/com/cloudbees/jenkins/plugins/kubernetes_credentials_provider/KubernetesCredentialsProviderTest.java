@@ -5,14 +5,18 @@ import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.fabric8.kubernetes.client.WatcherException;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -82,10 +86,36 @@ public class KubernetesCredentialsProviderTest {
     }
 
     @Test
+    public void startWatchingForSecrets_Scoped() throws IOException {
+        Map<String, String> s4Annotations = new HashMap<>();
+        s4Annotations.put(SecretUtils.JENKINS_IO_CREDENTIALS_ITEM_GROUP_ANNOTATION, "['my-item-group']");
+        Secret s4 = createSecret("s4", Map.of(), s4Annotations);
+
+        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type")
+                .andReturn(200, new SecretListBuilder()
+                        .withNewMetadata()
+                        .withResourceVersion("1")
+                        .endMetadata()
+                        .addToItems(s4)
+                        .build())
+                .once();
+
+        KubernetesCredentialProvider provider = new MockedKubernetesCredentialProvider();
+        provider.startWatchingForSecrets();
+
+        ItemGroup group = mock(ItemGroup.class);
+        when(group.getFullName()).thenReturn("my-item-group");
+
+        List<UsernamePasswordCredentials> credentials = provider.getCredentials(UsernamePasswordCredentials.class, group, ACL.SYSTEM);
+        assertEquals("credentials", 1, credentials.size());
+        assertTrue("secret s4 exists", credentials.stream().anyMatch(c -> "s4".equals(((UsernamePasswordCredentialsImpl) c).getId())));
+    }
+
+    @Test
     public void startWatchingForSecrets() {
-        Secret s1 = createSecret("s1", null);
-        Secret s2 = createSecret("s2", null);
-        Secret s3 = createSecret("s3", null);
+        Secret s1 = createSecret("s1", (CredentialsScope) null);
+        Secret s2 = createSecret("s2", (CredentialsScope) null);
+        Secret s3 = createSecret("s3", (CredentialsScope) null);
 
         // returns s1 and s3, the credentials map should be reset to this list
         server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type")
@@ -170,12 +200,26 @@ public class KubernetesCredentialsProviderTest {
     }
 
     private Secret createSecret(String name, CredentialsScope scope) {
+        Map<String, String> labels = Map.of(
+                "jenkins.io/credentials-scope", scope == null ? "global" : scope.name().toLowerCase(Locale.ROOT)
+        );
+        return createSecret(name, labels);
+    }
+
+    private Secret createSecret(String name, Map<String, String> labels) {
+        return createSecret(name, labels, Map.of());
+    }
+
+    private Secret createSecret(String name, Map<String, String> labels, Map<String, String> annotations) {
+        Map<String, String> labelsCopy = new HashMap<>(labels);
+        labelsCopy.put("jenkins.io/credentials-type", "usernamePassword");
+
         return new SecretBuilder()
                 .withNewMetadata()
                 .withNamespace("test")
                 .withName(name)
-                .addToLabels("jenkins.io/credentials-type", "usernamePassword")
-                .addToLabels("jenkins.io/credentials-scope", scope == null ? "global" : scope.name().toLowerCase(Locale.ROOT))
+                .addToLabels(labelsCopy)
+                .addToAnnotations(annotations)
                 .endMetadata()
                 .addToData("username", "bXlVc2VybmFtZQ==")
                 .addToData("password", "UGEkJHdvcmQ=")

@@ -9,8 +9,11 @@ import org.jenkins.ui.icon.Icon;
 import org.jenkins.ui.icon.IconSet;
 import org.jenkins.ui.icon.IconType;
 import org.kohsuke.stapler.export.ExportedBean;
+import hudson.model.Item;
+import hudson.model.ItemGroup;
 import hudson.model.ModelObject;
 import hudson.security.ACL;
+import hudson.security.AccessControlled;
 import hudson.security.Permission;
 import jenkins.model.Jenkins;
 import com.cloudbees.plugins.credentials.Credentials;
@@ -23,31 +26,70 @@ public class KubernetesCredentialsStore extends CredentialsStore {
 
     private final KubernetesCredentialProvider provider;
     private final KubernetesCredentialsStoreAction action = new KubernetesCredentialsStoreAction(this);
+    private final ItemGroup<?> context;
 
-    public KubernetesCredentialsStore(KubernetesCredentialProvider provider) {
+    public KubernetesCredentialsStore(KubernetesCredentialProvider provider, ItemGroup<?> context) {
         super(KubernetesCredentialProvider.class);
         this.provider = provider;
+        this.context = context;
     }
 
     @NonNull
     @Override
     public ModelObject getContext() {
-        return Jenkins.getInstance();
+        return context;
     }
 
     @Override
     public boolean hasPermission(@NonNull Authentication authentication, @NonNull Permission permission) {
-        return CredentialsProvider.VIEW.equals(permission) &&
-               Jenkins.getInstance().getACL().hasPermission(authentication, permission);
+        if(!CredentialsProvider.VIEW.equals(permission)) {
+            return false;
+        }
+
+        AccessControlled ac = getAccessControlledContext();
+        if(ac != null) {
+            return ac.hasPermission(permission);
+        }
+
+        return Jenkins.getInstance().getACL().hasPermission(authentication, permission);
     }
 
     @NonNull
     @Override
     public List<Credentials> getCredentials(@NonNull Domain domain) {
         // Only the global domain is supported
-        if (Domain.global().equals(domain) && Jenkins.getInstance().hasPermission(CredentialsProvider.VIEW))
-            return provider.getCredentials(Credentials.class, Jenkins.getInstance(), ACL.SYSTEM);
+        if (!Domain.global().equals(domain)) {
+            return Collections.emptyList();
+        }
+
+        AccessControlled ac = getAccessControlledContext();
+        if(ac == null) {
+            if(Jenkins.getInstance().getACL().hasPermission(CredentialsProvider.VIEW)){
+                return provider.getCredentials(Credentials.class, context, ACL.SYSTEM);
+            }
+        } else {
+            if(ac.hasPermission(CredentialsProvider.VIEW)) {
+                return provider.getCredentials(Credentials.class, context, ACL.SYSTEM);
+            }
+        }
+
         return Collections.emptyList();
+    }
+
+    @Nullable
+    private AccessControlled getAccessControlledContext() {
+        AccessControlled ac = null;
+        ItemGroup<?> ig = context;
+        while (ac == null) {
+            if (ig instanceof AccessControlled) {
+                ac = (AccessControlled)ig;
+            } else if(ig instanceof Item){
+                ig = ((Item) ig).getParent();
+            } else {
+                break;
+            }
+        }
+        return ac;
     }
 
     @Override

@@ -48,6 +48,7 @@ import io.fabric8.kubernetes.client.KubernetesClient;
 import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
+import jenkins.model.Jenkins;
 import jenkins.util.Timer;
 import org.acegisecurity.Authentication;
 import org.kohsuke.accmod.Restricted;
@@ -60,12 +61,10 @@ import hudson.init.Terminator;
 import hudson.model.ItemGroup;
 import hudson.model.ModelObject;
 import hudson.security.ACL;
-import jenkins.model.Jenkins;
 import com.cloudbees.plugins.credentials.Credentials;
 import com.cloudbees.plugins.credentials.CredentialsProvider;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.CredentialsStore;
-import com.cloudbees.plugins.credentials.common.IdCredentials;
 import com.cloudbees.plugins.credentials.domains.DomainRequirement;
 
 @Extension
@@ -73,8 +72,8 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
 
     private static final Logger LOG = Logger.getLogger(KubernetesCredentialProvider.class.getName());
 
-    /** Map of Credentials keyed by their credential ID */
-    private ConcurrentHashMap<String, IdCredentials> credentials = new ConcurrentHashMap<>();
+    /** Map of {@link KubernetesSourcedCredential} keyed by their credential ID */
+    private ConcurrentHashMap<String, KubernetesSourcedCredential> credentials = new ConcurrentHashMap<>();
 
     @CheckForNull
     private KubernetesClient client;
@@ -85,7 +84,8 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
     /** Delay in minutes before attempting to reconnect k8s client */
     private int reconnectClientDelayMins = Integer.getInteger(KubernetesCredentialProvider.class.getName() + ".reconnectClientDelayMins", 5);
 
-    private KubernetesCredentialsStore store = new KubernetesCredentialsStore(this);
+    /** A map storing credential scores scoped to ModelObjects, each ModelObject has its own credential store */
+    private final Map<ModelObject, KubernetesCredentialsStore> lazyStoreCache = new HashMap<>();
 
     /**
      * Kubernetes <a href="https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors">label selector</a> expression
@@ -120,7 +120,7 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
             // load current set of secrets into provider
             LOG.log(Level.FINER, "retrieving secrets");
             SecretList list = _client.secrets().withLabelSelector(selector).withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).list();
-            ConcurrentHashMap<String, IdCredentials> _credentials = new  ConcurrentHashMap<>();
+            ConcurrentHashMap<String, KubernetesSourcedCredential> _credentials = new  ConcurrentHashMap<>();
             List<Secret> secretList = list.getItems();
             for (Secret s : secretList) {
                 LOG.log(Level.FINE, "Secret Added - {0}", SecretUtils.getCredentialId(s));
@@ -195,18 +195,32 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
 
     @Override
     public <C extends Credentials> List<C> getCredentials(Class<C> type, ItemGroup itemGroup, Authentication authentication) {
-        LOG.log(Level.FINEST, "getCredentials called with type {0} and authentication {1}", new Object[] {type.getName(), authentication});
+        LOG.log(Level.FINEST, "getCredentials called with type {0}, itemgroup {1} and authentication {2}", new Object[] {type.getName(), itemGroup, authentication});
         if (ACL.SYSTEM.equals(authentication)) {
             ArrayList<C> list = new ArrayList<>();
-            for (IdCredentials credential : credentials.values()) {
+            for (KubernetesSourcedCredential credential : credentials.values()) {
+                // Parent group of item can be null
+                if(itemGroup == null && !credential.getItemGroups().isEmpty()) {
+                    continue;
+                }
+                if(itemGroup != null) {
+                    String itemGroupPath = itemGroup.getFullName();
+                    Collection<String> itemGroups = credential.getItemGroups();
+                    LOG.log(Level.FINEST, "getCredentials checking if itemGroupPath {0} is in itemGroups of {1} ({2})", new Object[] { itemGroupPath, credential.getId(), itemGroups });
+                    if (!itemGroups.isEmpty() && itemGroups.stream().noneMatch(itemGroupPath::equals)) {
+                        LOG.log(Level.FINEST, "getCredentials itemGroupPath not found in: {0}", itemGroups);
+                        continue;
+                    }
+                }
+
                 // is s a type of type then populate the list...
                 LOG.log(Level.FINEST, "getCredentials {0} is a possible candidate", credential.getId());
                 if (CredentialsScope.SYSTEM == credential.getScope() && !(itemGroup instanceof Jenkins)) {
                     LOG.log(Level.FINEST, "getCredentials {0} has SYSTEM scope, but the context is not Jenkins, ignoring", credential.getId());
-                } else if (type.isAssignableFrom(credential.getClass())) {
+                } else if (type.isAssignableFrom(credential.getIdCredentials().getClass())) {
                     LOG.log(Level.FINEST, "getCredentials {0} matches, adding to list", credential.getId());
                     // cast to keep generics happy even though we are assignable..
-                    list.add(type.cast(credential));
+                    list.add(type.cast(credential.getIdCredentials()));
                 } else {
                     LOG.log(Level.FINEST, "getCredentials {0} does not match", credential.getId());
                 }
@@ -221,9 +235,7 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
     public <C extends Credentials> List<C> getCredentials(@NonNull Class<C> type,
                                                           @NonNull Item item,
                                                           Authentication authentication) {
-        // we do not support scoping to Items, so we just need to use null to not expose SYSTEM credentials to Items.
-        Objects.requireNonNull(item);
-        return getCredentials(type, (ItemGroup)null, authentication);
+        return getCredentials(type, item.getParent(), authentication);
     }
 
     @Override
@@ -245,10 +257,11 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
         addSecret(secret, credentials);
     }
 
-    private void addSecret(Secret secret, Map<String, IdCredentials> map) {
-        IdCredentials cred = convertSecret(secret);
+    private void addSecret(Secret secret, Map<String, KubernetesSourcedCredential> map) {
+        KubernetesSourcedCredential cred = convertSecret(secret);
+        String credentialId = SecretUtils.getCredentialId(secret);
         if (cred != null) {
-            map.put(SecretUtils.getCredentialId(secret), cred);
+            map.put(credentialId, cred);
         }
     }
 
@@ -296,13 +309,16 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
 
 
     @CheckForNull
-    IdCredentials convertSecret(Secret s) {
+    KubernetesSourcedCredential convertSecret(Secret s) {
         String type = s.getMetadata().getLabels().get(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL);
 
         SecretToCredentialConverter lookup = SecretToCredentialConverter.lookup(type);
         if (lookup != null) {
             try {
-                return lookup.convert(s);
+                return new KubernetesSourcedCredential(
+                        lookup.convert(s),
+                        SecretUtils.getCredentialItemScopes(s)
+                );
             } catch (CredentialsConvertionException ex) {
                 // do not spam the logs with the stacktrace...
                 if (LOG.isLoggable(Level.FINE)) {
@@ -320,7 +336,11 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
 
     @Override
     public CredentialsStore getStore(ModelObject object) {
-        return object == Jenkins.getInstance() ? store : null;
+        if(object instanceof ItemGroup<?>) {
+            lazyStoreCache.putIfAbsent(object, new KubernetesCredentialsStore(this, (ItemGroup<?>) object));
+            return lazyStoreCache.get(object);
+        }
+        return null;
     }
 
     @Override
