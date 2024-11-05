@@ -49,6 +49,7 @@ import io.fabric8.kubernetes.client.KubernetesClientException;
 import io.fabric8.kubernetes.client.Watch;
 import io.fabric8.kubernetes.client.Watcher;
 import jenkins.model.Jenkins;
+import jenkins.util.SetContextClassLoader;
 import jenkins.util.Timer;
 import org.acegisecurity.Authentication;
 import org.kohsuke.accmod.Restricted;
@@ -97,8 +98,7 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
         if (client == null) {
             ConfigBuilder cb = new ConfigBuilder();
             Config config = cb.build();
-            // TODO post 2.362 use jenkins.util.SetContextClassLoader
-            try (WithContextClassLoader ignored = new WithContextClassLoader(getClass().getClassLoader())) {
+            try (SetContextClassLoader ignored = new SetContextClassLoader(KubernetesCredentialProvider.class)) {
                 client = new KubernetesClientBuilder().withConfig(config).build();
             }
         }
@@ -346,20 +346,5 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
     @Override
     public String getIconClassName() {
         return "icon-credentials-kubernetes-store";
-    }
-
-    private static class WithContextClassLoader implements AutoCloseable {
-
-        private final ClassLoader previousClassLoader;
-
-        public WithContextClassLoader(ClassLoader classLoader) {
-            this.previousClassLoader = Thread.currentThread().getContextClassLoader();
-            Thread.currentThread().setContextClassLoader(classLoader);
-        }
-
-        @Override
-        public void close() {
-            Thread.currentThread().setContextClassLoader(previousClassLoader);
-        }
     }
 }
