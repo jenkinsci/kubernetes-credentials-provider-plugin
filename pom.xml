@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>4.74</version>
+    <version>4.88</version>
     <relativePath />
   </parent>
 
@@ -45,8 +45,8 @@
   <properties>
     <revision>1</revision>
     <changelist>999999-SNAPSHOT</changelist>
-    <jenkins.version>2.414.1</jenkins.version>
-    <bom>2.414.x</bom>
+    <jenkins.baseline>2.452</jenkins.baseline>
+    <jenkins.version>${jenkins.baseline}.4</jenkins.version>
     <junit5.version>5.10.0</junit5.version>
   </properties>
 
@@ -79,8 +79,8 @@
     <dependencies>
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
-        <artifactId>bom-${bom}</artifactId>
-        <version>2401.v7a_d68f8d0b_09</version>
+        <artifactId>bom-${jenkins.baseline}.x</artifactId>
+        <version>3696.vb_b_4e2d1a_0542</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -95,7 +95,7 @@
       <dependency>
         <groupId>org.jetbrains.kotlin</groupId>
         <artifactId>kotlin-bom</artifactId>
-        <version>1.9.10</version>
+        <version>1.9.22</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
