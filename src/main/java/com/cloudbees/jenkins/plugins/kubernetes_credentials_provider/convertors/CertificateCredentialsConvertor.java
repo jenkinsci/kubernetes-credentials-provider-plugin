@@ -57,15 +57,15 @@ public class CertificateCredentialsConvertor extends SecretToCredentialConverter
         byte[] certData = SecretUtils.requireNonNull(SecretUtils.base64Decode(certBase64), "certificate credential has an invalid certificate (must be base64 encoded data)");
         SecretBytes sb = SecretBytes.fromBytes(certData);
 
-        CertificateCredentialsImpl certificateCredentialsImpl = new CertificateCredentialsImpl(SecretUtils.getCredentialScope(secret), SecretUtils.getCredentialId(secret), SecretUtils.getCredentialDescription(secret), password, new CertificateCredentialsImpl.UploadedKeyStoreSource(sb));
         try {
+            CertificateCredentialsImpl certificateCredentialsImpl = new CertificateCredentialsImpl(SecretUtils.getCredentialScope(secret), SecretUtils.getCredentialId(secret), SecretUtils.getCredentialDescription(secret), password, new CertificateCredentialsImpl.UploadedKeyStoreSource(sb));
             if (certificateCredentialsImpl.getKeyStore().size() == 0) {
-            throw new CredentialsConvertionException("certificate credential has an invalid certificate (encoded data is not a valid PKCS#12 format certificate understood by Java)");
+                throw new CredentialsConvertionException("certificate credential has an invalid certificate (encoded data is not a valid PKCS#12 format certificate understood by Java)");
             }
-        } catch (KeyStoreException ex) {
+            return certificateCredentialsImpl;
+        } catch (KeyStoreException | IllegalArgumentException ex) {
             throw new CredentialsConvertionException("certificate credential has an invalid certificate (encoded data is not a valid PKCS#12 format certificate understood by Java - " + ex.getMessage() + " )");
         }
-        return certificateCredentialsImpl;
     }
 
 }

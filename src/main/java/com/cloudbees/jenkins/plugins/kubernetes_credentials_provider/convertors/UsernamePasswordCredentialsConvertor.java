@@ -23,6 +23,7 @@
  */
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors;
 
+import hudson.model.Descriptor;
 import io.fabric8.kubernetes.api.model.Secret;
 import hudson.Extension;
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
@@ -53,8 +54,12 @@ public class UsernamePasswordCredentialsConvertor extends SecretToCredentialConv
 
         String password = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(passwordBase64), "usernamePassword credential has an invalid password (must be base64 encoded UTF-8)");
 
-        return new UsernamePasswordCredentialsImpl(SecretUtils.getCredentialScope(secret), SecretUtils.getCredentialId(secret), SecretUtils.getCredentialDescription(secret), username, password);
-
+        try {
+            return new UsernamePasswordCredentialsImpl(SecretUtils.getCredentialScope(secret), SecretUtils.getCredentialId(secret), SecretUtils.getCredentialDescription(secret), username, password);
+        }
+        catch (Descriptor.FormException e) {
+            throw new CredentialsConvertionException("Error creating UsernamePasswordCredentialsImpl", e);
+        }
     }
 
 }
