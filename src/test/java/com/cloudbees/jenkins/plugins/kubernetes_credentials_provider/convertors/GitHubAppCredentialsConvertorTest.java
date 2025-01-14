@@ -29,6 +29,7 @@ import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import java.io.InputStream;
 import org.jenkinsci.plugins.github_branch_source.GitHubAppCredentials;
+import org.jenkinsci.plugins.github_branch_source.app_credentials.AccessSpecifiedRepositories;
 import org.junit.Test;
 import org.jvnet.hudson.test.Issue;
 
@@ -36,8 +37,9 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.startsWith;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.emptyString;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.fail;
 
 /**
@@ -86,7 +88,9 @@ public class GitHubAppCredentialsConvertorTest {
             assertThat("credential appID is mapped correctly", credential.getAppID(), is("1234"));
             assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), is(notNullValue()));
             assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), startsWith("-----BEGIN PRIVATE KEY-----"));
-            assertThat("credential owner is mapped correctly", credential.getOwner(), is("cookies"));
+            assertThat("credential repository access strategy is mapped correctly", credential.getRepositoryAccessStrategy(), instanceOf(AccessSpecifiedRepositories.class));
+            var strategy = (AccessSpecifiedRepositories) credential.getRepositoryAccessStrategy();
+            assertThat("credential owner is mapped correctly", strategy.getOwner(), is("cookies"));
         }
     }
 
