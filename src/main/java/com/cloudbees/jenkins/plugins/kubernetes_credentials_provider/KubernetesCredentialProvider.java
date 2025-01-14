@@ -40,6 +40,7 @@ import hudson.model.Item;
 import hudson.triggers.SafeTimerTask;
 import hudson.util.AdministrativeError;
 import io.fabric8.kubernetes.api.model.LabelSelector;
+import io.fabric8.kubernetes.api.model.ListOptionsBuilder;
 import io.fabric8.kubernetes.api.model.Secret;
 import io.fabric8.kubernetes.api.model.SecretList;
 import io.fabric8.kubernetes.client.Config;
@@ -132,7 +133,9 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
             LOG.log(Level.FINER, "registering watch");
             // XXX https://github.com/fabric8io/kubernetes-client/issues/1014
             // watch(resourceVersion, watcher) is deprecated but there is nothing to say why?
-            watch = _client.secrets().withLabelSelector(selector).withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).watch(list.getMetadata().getResourceVersion(), this);
+            ListOptionsBuilder lob = new ListOptionsBuilder();
+            lob.withResourceVersion(list.getMetadata().getResourceVersion());
+            watch = _client.secrets().withLabelSelector(selector).withLabel(SecretUtils.JENKINS_IO_CREDENTIALS_TYPE_LABEL).watch(lob.build(), this);
             LOG.log(Level.FINER, "registered watch, retrieving secrets");
 
             // successfully initialized, clear any previous monitors

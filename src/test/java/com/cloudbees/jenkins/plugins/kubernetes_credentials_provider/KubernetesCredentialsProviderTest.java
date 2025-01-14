@@ -57,7 +57,7 @@ public class KubernetesCredentialsProviderTest {
 
     private @Mock(answer = Answers.CALLS_REAL_METHODS) MockedStatic<ExtensionList> extensionList;
     private @Mock MockedStatic<Timer> timer;
-    
+
     @Before
     public void setUp() {
         // mocked to validate add/remove of administrative errors
@@ -75,13 +75,15 @@ public class KubernetesCredentialsProviderTest {
     }
 
     private void mockKubernetesResponses(String labelSelector) {
+        // initial request without resourceVersion
         server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=" + labelSelector)
                 .andReturn(200, new SecretListBuilder()
                         .withNewMetadata()
                         .withResourceVersion("1")
                         .endMetadata()
                         .build()).always();
-        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=" + labelSelector + "&resourceVersion=1&allowWatchBookmarks=true&watch=true")
+        // subsequent requests resourceVersion after the first list (we do not modify things, so return null)
+        server.expect().withPath("/api/v1/namespaces/test/secrets?allowWatchBookmarks=true&labelSelector=" + labelSelector + "&resourceVersion=1&watch=true")
                 .andReturn(200, null).always();
     }
 
@@ -99,6 +101,10 @@ public class KubernetesCredentialsProviderTest {
                         .addToItems(s4)
                         .build())
                 .once();
+
+        // subsequent requests resourceVersion after the first list (we do not modify things, so return null)
+        server.expect().withPath("/api/v1/namespaces/test/secrets?allowWatchBookmarks=true&labelSelector=jenkins.io%2Fcredentials-type&resourceVersion=1&watch=true")
+                .andReturn(200, null).always();
 
         KubernetesCredentialProvider provider = new MockedKubernetesCredentialProvider();
         provider.startWatchingForSecrets();
@@ -128,7 +134,7 @@ public class KubernetesCredentialsProviderTest {
                 .once();
 
         // expect the s2 will get dropped when the credentials map is reset to the full list
-        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type&resourceVersion=1&allowWatchBookmarks=true&watch=true")
+        server.expect().withPath("/api/v1/namespaces/test/secrets?allowWatchBookmarks=true&labelSelector=jenkins.io%2Fcredentials-type&resourceVersion=1&watch=true")
                 .andUpgradeToWebSocket()
                     .open()
                         .waitFor(EVENT_WAIT_PERIOD_MS)
@@ -165,7 +171,7 @@ public class KubernetesCredentialsProviderTest {
                 .once();
 
         // expect the s2 will get dropped when the credentials map is reset to the full list
-        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type&watch=true")
+        server.expect().withPath("/api/v1/namespaces/test/secrets?allowWatchBookmarks=true&labelSelector=jenkins.io%2Fcredentials-type&resourceVersion=1&watch=true")
                 .andReturnChunked(200, new WatchEvent(s1, "ADDED"), new WatchEvent(s2, "ADDED"))
                 .once();
         server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type&watch=true")
@@ -174,7 +180,6 @@ public class KubernetesCredentialsProviderTest {
 
         KubernetesCredentialProvider provider = new MockedKubernetesCredentialProvider();
         provider.startWatchingForSecrets();
-
         List<UsernamePasswordCredentials> credentials;
 
         credentials = provider.getCredentials(UsernamePasswordCredentials.class, (ItemGroup) null, ACL.SYSTEM);
@@ -281,7 +286,7 @@ public class KubernetesCredentialsProviderTest {
             provider.startWatchingForSecrets();
 
             assertRequestCount("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type%2Cenv%20in%20%28iat%20uat%29", 1);
-            assertRequestCountAtLeast("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type%2Cenv%20in%20%28iat%20uat%29&resourceVersion=1&allowWatchBookmarks=true&watch=true", 1);
+            assertRequestCountAtLeast("/api/v1/namespaces/test/secrets?allowWatchBookmarks=true&labelSelector=jenkins.io%2Fcredentials-type%2Cenv%20in%20%28iat%20uat%29&resourceVersion=1&watch=true", 1);
         } finally {
             System.clearProperty(KubernetesCredentialProvider.LABEL_SELECTOR);
         }
@@ -330,7 +335,7 @@ public class KubernetesCredentialsProviderTest {
         int count = server.getKubernetesMockServer().getRequestCount();
         List<RecordedRequest> requests = new LinkedList<>();
         while (count-- > 0) {
-            requests.add(server.getKubernetesMockServer().takeRequest());
+            requests.add(server.getKubernetesMockServer().takeRequest(30L, TimeUnit.SECONDS));
         }
         return requests;
     }
