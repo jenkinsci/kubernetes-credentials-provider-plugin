@@ -142,7 +142,7 @@
       <artifactId>cloudbees-bitbucket-branch-source</artifactId>
       <scope>test</scope>
     </dependency>
-    <!-- TODO: Remove when this wwrkaround is no longer needed -->
+    <!-- TODO: Remove when this workaround is no longer needed -->
     <!-- End of special case to show plugin BOM issues -->
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
