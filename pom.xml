@@ -230,7 +230,7 @@
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
-    <!-- Special case to show plugin BOM issues related to mockito use in KubernetesCredentialsProviderTest -->
+    <!-- Special case to show plugin BOM issues -->
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>jackson2-api</artifactId>
