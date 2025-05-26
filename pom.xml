@@ -129,7 +129,7 @@
 
   <dependencies>
     <!-- Special case to avoid plugin BOM test failures -->
-    <!-- TODO: Remove when this wwrkaround is no longer needed -->
+    <!-- TODO: Remove when this workaround is no longer needed -->
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>jackson2-api</artifactId>
