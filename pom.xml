@@ -119,22 +119,6 @@
   </dependencyManagement>
 
   <dependencies>
-    <!-- Special case to avoid plugin BOM test failures -->
-    <!-- TODO: Remove when this workaround is no longer needed -->
-    <dependency>
-      <groupId>org.jenkins-ci.plugins</groupId>
-      <artifactId>jackson2-api</artifactId>
-      <!-- Jackson 2 API 2.19.0 fails tests when included with Bitbucket Branch Source or Artifact Manager for S3 or Pipeline Graph View in tests -->
-      <version>2.19.0-404.vb_b_0fd2fea_e10</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.jenkins-ci.plugins</groupId>
-      <artifactId>cloudbees-bitbucket-branch-source</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <!-- TODO: Remove when this workaround is no longer needed -->
-    <!-- End of special case to show plugin BOM issues -->
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>kubernetes-client-api</artifactId>
@@ -229,6 +213,13 @@
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
+    <!-- Special case to avoid duplicate BOM test failures -->
+    <dependency>
+      <groupId>org.jenkins-ci.plugins</groupId>
+      <artifactId>cloudbees-bitbucket-branch-source</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- End of special case to duplicate BOM test failures -->
   </dependencies>
 
   <!-- Jenkins is not synced to central so we need to bootstrap -->
