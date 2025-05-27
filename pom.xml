@@ -213,7 +213,7 @@
       <scope>provided</scope>
       <optional>true</optional>
     </dependency>
-    <!-- Special case to avoid duplicate BOM test failures -->
+    <!-- Special case to duplicate BOM test failures -->
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>cloudbees-bitbucket-branch-source</artifactId>
