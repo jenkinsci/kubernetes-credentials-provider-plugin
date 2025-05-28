@@ -13,4 +13,5 @@ data:
   secretKey: UGEkJHdvcmQ=                                                           #Pa$$word
   iamRoleArn: ZWNyOmV1LXdlc3QtMTo4NmM4ZjVlYy0xY2UxLTRlOTQtODBjMi0xOGUyM2JiZDcyNGE=  #ecr:eu-west-1:86c8f5ec-1ce1-4e94-80c2-18e23bbd724a
   iamMfaSerialNumber: R0FIVDEyMzQ1Njc4                                              #GAHT12345678
+  iamExternalId: ZXh0LWlk                                                           #ext-id
 
