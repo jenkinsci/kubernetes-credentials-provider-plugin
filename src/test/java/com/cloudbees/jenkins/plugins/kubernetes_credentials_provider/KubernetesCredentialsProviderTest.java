@@ -11,6 +11,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import io.fabric8.kubernetes.client.WatcherException;
+import io.fabric8.kubernetes.client.server.mock.KubernetesMockServer;
+import io.fabric8.mockwebserver.http.RecordedRequest;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,12 +34,10 @@ import hudson.model.ItemGroup;
 import hudson.security.ACL;
 import io.fabric8.kubernetes.api.model.*;
 import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.server.mock.KubernetesServer;
 import jenkins.model.Jenkins;
 import jenkins.util.Timer;
-import okhttp3.mockwebserver.RecordedRequest;
+import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.jvnet.hudson.test.Issue;
@@ -52,7 +52,7 @@ public class KubernetesCredentialsProviderTest {
 
     private static final Long EVENT_WAIT_PERIOD_MS = 10L;
 
-    public @Rule KubernetesServer server = new KubernetesServer();
+    private KubernetesMockServer server;
     private @Mock ScheduledExecutorService jenkinsTimer;
 
     private @Mock(answer = Answers.CALLS_REAL_METHODS) MockedStatic<ExtensionList> extensionList;
@@ -60,6 +60,9 @@ public class KubernetesCredentialsProviderTest {
 
     @Before
     public void setUp() {
+        server = new KubernetesMockServer();
+        server.init();
+        server.clearExpectations();
         // mocked to validate add/remove of administrative errors
         ExtensionList<AdministrativeMonitor> monitors = ExtensionList.create((Jenkins) null, AdministrativeMonitor.class);
         // mocked to validate start watching for secrets
@@ -68,6 +71,11 @@ public class KubernetesCredentialsProviderTest {
         extensionList.when(() -> ExtensionList.lookup(AdministrativeMonitor.class)).thenReturn(monitors);
         extensionList.when(() -> ExtensionList.lookup(SecretToCredentialConverter.class)).thenReturn(converters);
         timer.when(Timer::get).thenReturn(jenkinsTimer);
+    }
+
+    @After
+    public void tearDown() {
+        server.destroy();
     }
 
     private void defaultMockKubernetesResponses() {
@@ -332,10 +340,10 @@ public class KubernetesCredentialsProviderTest {
     }
 
     private List<RecordedRequest> getRequests() throws InterruptedException {
-        int count = server.getKubernetesMockServer().getRequestCount();
+        int count = server.getRequestCount();
         List<RecordedRequest> requests = new LinkedList<>();
         while (count-- > 0) {
-            requests.add(server.getKubernetesMockServer().takeRequest(30L, TimeUnit.SECONDS));
+            requests.add(server.takeRequest(30L, TimeUnit.SECONDS));
         }
         return requests;
     }
@@ -343,7 +351,7 @@ public class KubernetesCredentialsProviderTest {
     private class MockedKubernetesCredentialProvider extends KubernetesCredentialProvider {
         @Override
         KubernetesClient getKubernetesClient() {
-            return server.getClient();
+            return server.createClient();
         }
     }
 }
