@@ -53,6 +53,7 @@ public class KubernetesCredentialsProviderTest {
     private static final Long EVENT_WAIT_PERIOD_MS = 10L;
 
     private KubernetesMockServer server;
+    private KubernetesClient client;
     private @Mock ScheduledExecutorService jenkinsTimer;
 
     private @Mock(answer = Answers.CALLS_REAL_METHODS) MockedStatic<ExtensionList> extensionList;
@@ -63,6 +64,7 @@ public class KubernetesCredentialsProviderTest {
         server = new KubernetesMockServer();
         server.init();
         server.clearExpectations();
+        client = server.createClient();
         // mocked to validate add/remove of administrative errors
         ExtensionList<AdministrativeMonitor> monitors = ExtensionList.create((Jenkins) null, AdministrativeMonitor.class);
         // mocked to validate start watching for secrets
@@ -75,6 +77,7 @@ public class KubernetesCredentialsProviderTest {
 
     @After
     public void tearDown() {
+        client.close();
         server.destroy();
     }
 
@@ -351,7 +354,7 @@ public class KubernetesCredentialsProviderTest {
     private class MockedKubernetesCredentialProvider extends KubernetesCredentialProvider {
         @Override
         KubernetesClient getKubernetesClient() {
-            return server.createClient();
+            return client;
         }
     }
 }
