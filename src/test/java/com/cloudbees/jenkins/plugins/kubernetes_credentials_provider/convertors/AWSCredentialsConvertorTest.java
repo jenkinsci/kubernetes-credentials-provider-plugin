@@ -47,6 +47,7 @@ public class AWSCredentialsConvertorTest {
     String secretKey= "Pa$$word";
     String iamRoleArn = "ecr:eu-west-1:86c8f5ec-1ce1-4e94-80c2-18e23bbd724a";
     String iamMfaSerialNumber = "GAHT12345678";
+    String iamExternalId = "ext-id";
 
     @Test
     public void canConvert() throws Exception {
@@ -71,6 +72,7 @@ public class AWSCredentialsConvertorTest {
             assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(secretKey));
             assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(iamRoleArn));
             assertThat("credential iamMfaSerialNumber is mapped correctly", credential.getIamMfaSerialNumber(), is(iamMfaSerialNumber));
+            assertThat("credential iamExternalId is mapped correctly", credential.getIamExternalId(), is(iamExternalId));
         }
     }
 
@@ -107,6 +109,7 @@ public class AWSCredentialsConvertorTest {
             assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(secretKey));
             assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(iamRoleArn));
             assertThat("credential iamMfaSerialNumber is mapped correctly", credential.getIamMfaSerialNumber(), is(iamMfaSerialNumber));
+            assertThat("credential iamExternalId is mapped correctly", credential.getIamExternalId(), is(iamExternalId));
         }
     }
 
@@ -126,6 +129,7 @@ public class AWSCredentialsConvertorTest {
             assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(secretKey));
             assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(iamRoleArn));
             assertThat("credential iamMfaSerialNumber is mapped correctly", credential.getIamMfaSerialNumber(), is(iamMfaSerialNumber));
+            assertThat("credential iamExternalId is mapped correctly", credential.getIamExternalId(), is(iamExternalId));
         }
     }
 
@@ -144,6 +148,7 @@ public class AWSCredentialsConvertorTest {
             assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(accessKey));
             assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(secretKey));
             assertThat("credential iamMfaSerialNumber is mapped correctly", credential.getIamMfaSerialNumber(), is(iamMfaSerialNumber));
+            assertThat("credential iamExternalId is mapped correctly", credential.getIamExternalId(), is(iamExternalId));
         }
     }
 
@@ -152,6 +157,25 @@ public class AWSCredentialsConvertorTest {
         AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
 
         try (InputStream is = get("validMissingIamMfa.yaml")) {
+            Secret secret = Serialization.unmarshal(is, Secret.class);
+            assertThat("The Secret was loaded correctly from disk", notNullValue());
+            AWSCredentialsImpl credential = convertor.convert(secret);
+            assertThat(credential, notNullValue());
+            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
+            assertThat("credential description is mapped correctly", credential.getDescription(), is(emptyString()));
+            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+            assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(accessKey));
+            assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(secretKey));
+            assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(iamRoleArn));
+            assertThat("credential iamExternalId is mapped correctly", credential.getIamExternalId(), is(iamExternalId));
+        }
+    }
+    
+    @Test
+    public void canConvertAValidSecretWithNoIamExternalId() throws Exception {
+        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
+
+        try (InputStream is = get("validMissingIamExternalId.yaml")) {
             Secret secret = Serialization.unmarshal(is, Secret.class);
             assertThat("The Secret was loaded correctly from disk", notNullValue());
             AWSCredentialsImpl credential = convertor.convert(secret);
@@ -182,6 +206,7 @@ public class AWSCredentialsConvertorTest {
             assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(secretKey));
             assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(iamRoleArn));
             assertThat("credential iamMfaSerialNumber is mapped correctly", credential.getIamMfaSerialNumber(), is(iamMfaSerialNumber));
+            assertThat("credential iamExternalId is mapped correctly", credential.getIamExternalId(), is(iamExternalId));
         }
     }
 
