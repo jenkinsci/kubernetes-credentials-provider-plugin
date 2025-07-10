@@ -108,7 +108,7 @@
       <dependency>
         <groupId>com.datapipe.jenkins.plugins</groupId>
         <artifactId>hashicorp-vault-plugin</artifactId>
-        <version>368.v48134f694db_f</version>
+        <version>371.v884a_4dd60fb_6</version>
       </dependency>
       <dependency>
         <groupId>org.jenkins-ci.ui</groupId>
