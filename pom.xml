@@ -47,7 +47,7 @@
     <changelist>999999-SNAPSHOT</changelist>
     <jenkins.baseline>2.504</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.1</jenkins.version>
-    <junit5.version>5.13.2</junit5.version>
+    <junit5.version>5.13.3</junit5.version>
   </properties>
 
   <scm>
