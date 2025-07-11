@@ -23,177 +23,118 @@
  */
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors;
 
-import java.io.InputStream;
+import com.cloudbees.plugins.credentials.CredentialsScope;
+import hudson.util.HistoricalSecrets;
+import io.fabric8.kubernetes.api.model.Secret;
+import jenkins.security.ConfidentialStore;
+import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.jvnet.hudson.test.Issue;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
+
 import java.nio.charset.StandardCharsets;
 
-import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.client.utils.Serialization;
-import org.jenkinsci.plugins.plaincredentials.impl.FileCredentialsImpl;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.jvnet.hudson.test.Issue;
-import org.mockito.*;
-import org.mockito.junit.MockitoJUnitRunner;
-import hudson.util.HistoricalSecrets;
-import jenkins.security.ConfidentialStore;
-import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
-import com.cloudbees.plugins.credentials.CredentialsScope;
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.hamcrest.MatcherAssert.assertThat;
 
 /**
  * Tests FileCredentialsConvertor
  */
-@RunWith(MockitoJUnitRunner.class)
-public class FileCredentialsConvertorTest {
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
+class FileCredentialsConvertorTest extends AbstractConverterTest {
 
-    private @Mock ConfidentialStore confidentialStore;
-    private @Mock MockedStatic<ConfidentialStore> confidentialStoreMockedStatic;
+	@Mock
+	private ConfidentialStore confidentialStore;
+	@Mock
+	private MockedStatic<ConfidentialStore> confidentialStoreMockedStatic;
 
-    // return null rather than go looking up Jenkins.getInstance....
-    private @Mock MockedStatic<HistoricalSecrets> historicalSecretsMockedStatic;
+	// return null rather than go looking up Jenkins.getInstance....
+	@Mock
+	private MockedStatic<HistoricalSecrets> historicalSecretsMockedStatic;
 
-    @Before
-    public void mockConfidentialStore() {
-        confidentialStoreMockedStatic.when(ConfidentialStore::get).thenReturn(confidentialStore);
-        Mockito.when(confidentialStore.randomBytes(ArgumentMatchers.anyInt())).thenAnswer( it -> new byte[ (Integer)(it.getArguments()[0])] );
-    }
+	private final FileCredentialsConvertor convertor = new FileCredentialsConvertor();
 
-    @Test
-    public void canConvert() throws Exception {
-        FileCredentialsConvertor convertor = new FileCredentialsConvertor();
-        assertThat("correct registration of valid type", convertor.canConvert("secretFile"), is(true));
-        assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
-    }
+	@BeforeEach
+	void setup() {
+		confidentialStoreMockedStatic.when(ConfidentialStore::get).thenReturn(confidentialStore);
+		Mockito.when(confidentialStore.randomBytes(ArgumentMatchers.anyInt())).thenAnswer(it -> new byte[(Integer) (it.getArguments()[0])]);
+	}
 
-    @Test
-    public void canConvertAValidSecret() throws Exception {
-        FileCredentialsConvertor convertor = new FileCredentialsConvertor();
+	@Test
+	void canConvert() {
+		assertThat("correct registration of valid type", convertor.canConvert("secretFile"), is(true));
+		assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
+	}
 
-        try (InputStream is = get("valid.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            assertThat("The Secret was loaded correctly from disk", notNullValue());
-            FileCredentialsImpl credential = convertor.convert(secret);
-            assertThat(credential, notNullValue());
-            assertThat("credential id is mapped correctly", credential.getId(), is("another-test-file"));
-            assertThat("credential description is mapped correctly", credential.getDescription(), is("secret file credential from Kubernetes"));
-            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-            assertThat("credential username is mapped correctly", credential.getFileName(), is("mySecret.txt"));
-            assertThat("credential password is mapped correctly", credential.getSecretBytes().getPlainData(), is("Hello World!".getBytes(StandardCharsets.UTF_8)));
-        }
-    }
+	@Test
+	void canConvertAValidSecret() throws Exception {
+		Secret secret = getSecret("valid.yaml");
+		FileCredentialsImpl credential = convertor.convert(secret);
+		assertThat(credential, notNullValue());
+		assertThat("credential id is mapped correctly", credential.getId(), is("another-test-file"));
+		assertThat("credential description is mapped correctly", credential.getDescription(), is("secret file credential from Kubernetes"));
+		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+		assertThat("credential username is mapped correctly", credential.getFileName(), is("mySecret.txt"));
+		assertThat("credential password is mapped correctly", credential.getSecretBytes().getPlainData(), is("Hello World!".getBytes(StandardCharsets.UTF_8)));
+	}
 
-    @Test
-    public void canConvertAValidMappedSecret() throws Exception {
-        FileCredentialsConvertor convertor = new FileCredentialsConvertor();
+	@Test
+	void canConvertAValidMappedSecret() throws Exception {
+		Secret secret = getSecret("validMapped.yaml");
+		FileCredentialsImpl credential = convertor.convert(secret);
+		assertThat(credential, notNullValue());
+		assertThat("credential id is mapped correctly", credential.getId(), is("another-test-file"));
+		assertThat("credential description is mapped correctly", credential.getDescription(), is("secret file credential from Kubernetes"));
+		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+		assertThat("credential username is mapped correctly", credential.getFileName(), is("mySecret.txt"));
+		assertThat("credential password is mapped correctly", credential.getSecretBytes().getPlainData(), is("Hello World!".getBytes(StandardCharsets.UTF_8)));
+	}
 
-        try (InputStream is = get("validMapped.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            assertThat("The Secret was loaded correctly from disk", notNullValue());
-            FileCredentialsImpl credential = convertor.convert(secret);
-            assertThat(credential, notNullValue());
-            assertThat("credential id is mapped correctly", credential.getId(), is("another-test-file"));
-            assertThat("credential description is mapped correctly", credential.getDescription(), is("secret file credential from Kubernetes"));
-            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-            assertThat("credential username is mapped correctly", credential.getFileName(), is("mySecret.txt"));
-            assertThat("credential password is mapped correctly", credential.getSecretBytes().getPlainData(), is("Hello World!".getBytes(StandardCharsets.UTF_8)));
-        }
-    }
+	@Issue("JENKINS-53105")
+	@Test
+	void canConvertAValidScopedSecret() throws Exception {
+		Secret secret = getSecret("validScoped.yaml");
+		FileCredentialsImpl credential = convertor.convert(secret);
+		assertThat(credential, notNullValue());
+		assertThat("credential id is mapped correctly", credential.getId(), is("another-test-file"));
+		assertThat("credential description is mapped correctly", credential.getDescription(), is("secret file credential from Kubernetes"));
+		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
+		assertThat("credential username is mapped correctly", credential.getFileName(), is("mySecret.txt"));
+		assertThat("credential password is mapped correctly", credential.getSecretBytes().getPlainData(), is("Hello World!".getBytes(StandardCharsets.UTF_8)));
+	}
 
-    @Issue("JENKINS-53105")
-    @Test
-    public void canConvertAValidScopedSecret() throws Exception {
-        FileCredentialsConvertor convertor = new FileCredentialsConvertor();
+	@Test
+	void failsToConvertWhenFilenameMissing() throws Exception {
+		testMissingField(convertor, "filename");
+	}
 
-        try (InputStream is = get("validScoped.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            assertThat("The Secret was loaded correctly from disk", notNullValue());
-            FileCredentialsImpl credential = convertor.convert(secret);
-            assertThat(credential, notNullValue());
-            assertThat("credential id is mapped correctly", credential.getId(), is("another-test-file"));
-            assertThat("credential description is mapped correctly", credential.getDescription(), is("secret file credential from Kubernetes"));
-            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
-            assertThat("credential username is mapped correctly", credential.getFileName(), is("mySecret.txt"));
-            assertThat("credential password is mapped correctly", credential.getSecretBytes().getPlainData(), is("Hello World!".getBytes(StandardCharsets.UTF_8)));
-        }
-    }
+	@Test
+	void failsToConvertWhenDataMissing() throws Exception {
+		testMissingField(convertor, "data");
+	}
 
-    @Test
-    public void failsToConvertWhenFilenameMissing() throws Exception {
-        FileCredentialsConvertor convertor = new FileCredentialsConvertor();
-        
-        try (InputStream is = get("missingFilename.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("missing the filename"));
-        }
-    }
+	@Test
+	void failsToConvertWhenFilenameCorrupt() throws Exception {
+		testCorruptField(convertor, "filename");
+	}
 
-    
-    @Test
-    public void failsToConvertWhenDataMissing() throws Exception {
-        FileCredentialsConvertor convertor = new FileCredentialsConvertor();
+	@Test
+	void failsToConvertWhenDataCorrupt() throws Exception {
+		testCorruptField(convertor, "data");
+	}
 
-        try (InputStream is = get("missingData.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("missing the data"));
-        }
-    }
-
-    @Test
-    public void failsToConvertWhenFilenameCorrupt() throws Exception {
-        FileCredentialsConvertor convertor = new FileCredentialsConvertor();
-        
-        try (InputStream is = get("corruptFilename.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("invalid filename"));
-        }
-    }
-
-    
-    @Test
-    public void failsToConvertWhenDataCorrupt() throws Exception {
-        FileCredentialsConvertor convertor = new FileCredentialsConvertor();
-
-        try (InputStream is = get("corruptData.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("invalid data"));
-        }
-    }
-
-    @Test
-    public void failsToConvertWhenDataEmpty() throws Exception {
-        FileCredentialsConvertor convertor = new FileCredentialsConvertor();
-        
-        try (InputStream is = get("void.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("contains no data"));
-        }
-    }
-
-    private static final InputStream get(String resource) {
-        InputStream is = FileCredentialsConvertorTest.class.getResourceAsStream("FileCredentialsConvertorTest/" + resource);
-        if (is == null) {
-            fail("failed to load resource " + resource);
-        }
-        return is;
-    }
+	@Test
+	void failsToConvertWhenDataEmpty() throws Exception {
+		testNoData(convertor);
+	}
 }
