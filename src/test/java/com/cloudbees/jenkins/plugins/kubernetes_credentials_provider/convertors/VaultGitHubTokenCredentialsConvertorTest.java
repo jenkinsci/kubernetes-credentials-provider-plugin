@@ -23,39 +23,34 @@
  */
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.emptyString;
-
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.datapipe.jenkins.vault.credentials.VaultGithubTokenCredential;
 import io.fabric8.kubernetes.api.model.Secret;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.Issue;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.emptyString;
 
 /**
  * Tests {@link VaultGitHubTokenCredentialsConvertor}
  */
-public class VaultGitHubTokenCredentialsConvertorTest extends AbstractConverterTest {
+class VaultGitHubTokenCredentialsConvertorTest extends AbstractConverterTest {
 
-    private VaultGitHubTokenCredentialsConvertor convertor;
-
-    @Before
-    public void setup() {
-        convertor = new VaultGitHubTokenCredentialsConvertor();
-    }
+    private final VaultGitHubTokenCredentialsConvertor convertor = new VaultGitHubTokenCredentialsConvertor();
 
     @Test
-    public void canConvert() throws Exception {
+    void canConvert() {
         assertThat("correct registration of valid type", convertor.canConvert("vaultGitHubToken"), is(true));
         assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
     }
 
     @Test
-    public void canConvertAValidSecret() throws Exception {
+    void canConvertAValidSecret() throws Exception {
         Secret secret = getSecret("valid.yaml");
-        assertThat("The Secret was loaded correctly from disk", notNullValue());
         VaultGithubTokenCredential credential = convertor.convert(secret);
         assertThat(credential, notNullValue());
         assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultgithubtoken"));
@@ -67,9 +62,8 @@ public class VaultGitHubTokenCredentialsConvertorTest extends AbstractConverterT
     }
 
     @Test
-    public void canConvertAValidSecretWithOptionalFields() throws Exception {
+    void canConvertAValidSecretWithOptionalFields() throws Exception {
         Secret secret = getSecret("validWithOptional.yaml");
-        assertThat("The Secret was loaded correctly from disk", notNullValue());
         VaultGithubTokenCredential credential = convertor.convert(secret);
         assertThat(credential, notNullValue());
         assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultgithubtoken"));
@@ -81,9 +75,8 @@ public class VaultGitHubTokenCredentialsConvertorTest extends AbstractConverterT
     }
 
     @Test
-    public void canConvertAValidMappedSecret() throws Exception {
+    void canConvertAValidMappedSecret() throws Exception {
         Secret secret = getSecret("validMapped.yaml");
-        assertThat("The Secret was loaded correctly from disk", notNullValue());
         VaultGithubTokenCredential credential = convertor.convert(secret);
         assertThat(credential, notNullValue());
         assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultgithubtoken"));
@@ -96,9 +89,8 @@ public class VaultGitHubTokenCredentialsConvertorTest extends AbstractConverterT
 
     @Issue("JENKINS-54313")
     @Test
-    public void canConvertAValidSecretWithNoDescription() throws Exception {
+    void canConvertAValidSecretWithNoDescription() throws Exception {
         Secret secret = getSecret("valid-no-desc.yaml");
-        assertThat("The Secret was loaded correctly from disk", notNullValue());
         VaultGithubTokenCredential credential = convertor.convert(secret);
         assertThat(credential, notNullValue());
         assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultgithubtoken"));
@@ -107,9 +99,8 @@ public class VaultGitHubTokenCredentialsConvertorTest extends AbstractConverterT
 
     @Issue("JENKINS-53105")
     @Test
-    public void canConvertAValidScopedSecret() throws Exception {
+    void canConvertAValidScopedSecret() throws Exception {
         Secret secret = getSecret("validScoped.yaml");
-        assertThat("The Secret was loaded correctly from disk", notNullValue());
         VaultGithubTokenCredential credential = convertor.convert(secret);
         assertThat(credential, notNullValue());
         assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultgithubtoken"));
@@ -118,28 +109,27 @@ public class VaultGitHubTokenCredentialsConvertorTest extends AbstractConverterT
     }
 
     @Test
-    public void failsToConvertWhenAccessTokenMissing() throws Exception {
+    void failsToConvertWhenAccessTokenMissing() throws Exception {
         testMissingField(convertor, "accessToken");
     }
 
     @Test
-    public void failsToConvertWhenAccessTokenCorrupt() throws Exception {
+    void failsToConvertWhenAccessTokenCorrupt() throws Exception {
         testCorruptField(convertor, "accessToken");
     }
 
     @Test
-    public void failsToConvertWhenMountPathCorrupt() throws Exception {
+    void failsToConvertWhenMountPathCorrupt() throws Exception {
         testCorruptField(convertor, "mountPath");
     }
 
     @Test
-    public void failsToConvertWhenNamespaceCorrupt() throws Exception {
+    void failsToConvertWhenNamespaceCorrupt() throws Exception {
         testCorruptField(convertor, "namespace");
     }
 
     @Test
-    public void failsToConvertWhenDataEmpty() throws Exception {
+    void failsToConvertWhenDataEmpty() throws Exception {
         testNoData(convertor);
     }
-
 }

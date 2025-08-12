@@ -23,123 +23,124 @@
  */
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors;
 
-import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import hudson.util.Secret;
 import org.jenkinsci.plugins.docker.commons.credentials.DockerServerCredentials;
-import org.junit.Test;
-
-import java.io.IOException;
+import org.junit.jupiter.api.Test;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-public class DockerServerCredentialsConvertorTest extends AbstractConverterTest {
+class DockerServerCredentialsConvertorTest extends AbstractConverterTest {
 
-    private final String clientCertificate = "-----BEGIN CERTIFICATE-----\n" +
-            "MIIBYjCCAQygAwIBAgIJAKZlQzqGGWu9MA0GCSqGSIb3DQEBBQUAMEExCzAJBgNV\n" +
-            "BAYTAlhYMQswCQYDVQQIDAJYWDELMAkGA1UEBwwCWFgxCzAJBgNVBAoMAlhYMQsw\n" +
-            "CQYDVQQDDAJjYTAeFw0yMjA5MjEwNzQzMzVaFw0yMjEwMjEwNzQzMzVaMBExDzAN\n" +
-            "BgNVBAMMBmNsaWVudDBcMA0GCSqGSIb3DQEBAQUAA0sAMEgCQQDB/x6RULr5QOYl\n" +
-            "ulbzZI+8wPZMnrDPwMpP3Kh1MzxJwm1E0LJcI1nY3ePsoIGGQVITNNnjfBbEuYU6\n" +
-            "01sljo5/AgMBAAGjFzAVMBMGA1UdJQQMMAoGCCsGAQUFBwMCMA0GCSqGSIb3DQEB\n" +
-            "BQUAA0EAVP35oeWUOiRaIv9zCDt+3VRMQd6eggmmsx5qyy6ee/mLPpdUWUSt8Ayf\n" +
-            "AiwAD2dca4XziVtJYVK++VnFGG/5EQ==\n" +
-            "-----END CERTIFICATE-----";
+    private static final String CLIENT_CERTIFICATE = """
+            -----BEGIN CERTIFICATE-----
+            MIIBYjCCAQygAwIBAgIJAKZlQzqGGWu9MA0GCSqGSIb3DQEBBQUAMEExCzAJBgNV
+            BAYTAlhYMQswCQYDVQQIDAJYWDELMAkGA1UEBwwCWFgxCzAJBgNVBAoMAlhYMQsw
+            CQYDVQQDDAJjYTAeFw0yMjA5MjEwNzQzMzVaFw0yMjEwMjEwNzQzMzVaMBExDzAN
+            BgNVBAMMBmNsaWVudDBcMA0GCSqGSIb3DQEBAQUAA0sAMEgCQQDB/x6RULr5QOYl
+            ulbzZI+8wPZMnrDPwMpP3Kh1MzxJwm1E0LJcI1nY3ePsoIGGQVITNNnjfBbEuYU6
+            01sljo5/AgMBAAGjFzAVMBMGA1UdJQQMMAoGCCsGAQUFBwMCMA0GCSqGSIb3DQEB
+            BQUAA0EAVP35oeWUOiRaIv9zCDt+3VRMQd6eggmmsx5qyy6ee/mLPpdUWUSt8Ayf
+            AiwAD2dca4XziVtJYVK++VnFGG/5EQ==
+            -----END CERTIFICATE-----""";
 
-    private final String clientKeySecret = "-----BEGIN PRIVATE KEY-----\n" +
-            "MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAwf8ekVC6+UDmJbpW\n" +
-            "82SPvMD2TJ6wz8DKT9yodTM8ScJtRNCyXCNZ2N3j7KCBhkFSEzTZ43wWxLmFOtNb\n" +
-            "JY6OfwIDAQABAkAU3CDmUT75pE/bCLFm1I5cJoeVb47ll/5pHfoDODIoYA5LnQy9\n" +
-            "/z4PNYCyw3Cq9m3+nf+HSRs8JcWuU7u93BaBAiEA/9mPwDrTlDhpILnmbsbIxXkq\n" +
-            "zeUgypmM1cxQnhtYS78CIQDCHEPgHCdWYCLPnMxUjwrzXtyrIlWJ89j04uOVyN1t\n" +
-            "QQIhANI4mFYRv/Fk3HSIax+QdD1Vzub4opX1zvOI+qC+xTEPAiBiM/KS+ytbo594\n" +
-            "8ZbeYM/leGSjn+cut9NXcUI6kTiVAQIgd/FTmiUryLcSUxzz6YqmU+wU1+ebSHmx\n" +
-            "U87XDZwmb40=\n" +
-            "-----END PRIVATE KEY-----\n";
+    private static final String CLIENT_KEY_SECRET = """
+            -----BEGIN PRIVATE KEY-----
+            MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAwf8ekVC6+UDmJbpW
+            82SPvMD2TJ6wz8DKT9yodTM8ScJtRNCyXCNZ2N3j7KCBhkFSEzTZ43wWxLmFOtNb
+            JY6OfwIDAQABAkAU3CDmUT75pE/bCLFm1I5cJoeVb47ll/5pHfoDODIoYA5LnQy9
+            /z4PNYCyw3Cq9m3+nf+HSRs8JcWuU7u93BaBAiEA/9mPwDrTlDhpILnmbsbIxXkq
+            zeUgypmM1cxQnhtYS78CIQDCHEPgHCdWYCLPnMxUjwrzXtyrIlWJ89j04uOVyN1t
+            QQIhANI4mFYRv/Fk3HSIax+QdD1Vzub4opX1zvOI+qC+xTEPAiBiM/KS+ytbo594
+            8ZbeYM/leGSjn+cut9NXcUI6kTiVAQIgd/FTmiUryLcSUxzz6YqmU+wU1+ebSHmx
+            U87XDZwmb40=
+            -----END PRIVATE KEY-----
+            """;
 
-    private final String serverCaCertificate = "-----BEGIN CERTIFICATE-----\n" +
-            "MIIBdDCCAR4CCQCgzKd3hWBmXTANBgkqhkiG9w0BAQsFADBBMQswCQYDVQQGEwJY\n" +
-            "WDELMAkGA1UECAwCWFgxCzAJBgNVBAcMAlhYMQswCQYDVQQKDAJYWDELMAkGA1UE\n" +
-            "AwwCY2EwHhcNMjIwOTIxMDc0MzM1WhcNMjIxMDIxMDc0MzM1WjBBMQswCQYDVQQG\n" +
-            "EwJYWDELMAkGA1UECAwCWFgxCzAJBgNVBAcMAlhYMQswCQYDVQQKDAJYWDELMAkG\n" +
-            "A1UEAwwCY2EwXDANBgkqhkiG9w0BAQEFAANLADBIAkEAruIT3of/2lUvYPY7Azsj\n" +
-            "AtKZnV6gthB6K70AsgKPp63xdlBrMgg5CYH7Xe7VmLXb7xhHLBHBnRJ3vPbH/m7h\n" +
-            "swIDAQABMA0GCSqGSIb3DQEBCwUAA0EAfWb62RJ21i7tlbSttmu7by/k4fML31FQ\n" +
-            "XoR7JjrHmbI+f1BkwSbMVxxadAWpSkk/NNI1+SHR/nYSv/loQ3UjmA==\n" +
-            "-----END CERTIFICATE-----";
+    private static final String SERVER_CA_CERTIFICATE = """
+            -----BEGIN CERTIFICATE-----
+            MIIBdDCCAR4CCQCgzKd3hWBmXTANBgkqhkiG9w0BAQsFADBBMQswCQYDVQQGEwJY
+            WDELMAkGA1UECAwCWFgxCzAJBgNVBAcMAlhYMQswCQYDVQQKDAJYWDELMAkGA1UE
+            AwwCY2EwHhcNMjIwOTIxMDc0MzM1WhcNMjIxMDIxMDc0MzM1WjBBMQswCQYDVQQG
+            EwJYWDELMAkGA1UECAwCWFgxCzAJBgNVBAcMAlhYMQswCQYDVQQKDAJYWDELMAkG
+            A1UEAwwCY2EwXDANBgkqhkiG9w0BAQEFAANLADBIAkEAruIT3of/2lUvYPY7Azsj
+            AtKZnV6gthB6K70AsgKPp63xdlBrMgg5CYH7Xe7VmLXb7xhHLBHBnRJ3vPbH/m7h
+            swIDAQABMA0GCSqGSIb3DQEBCwUAA0EAfWb62RJ21i7tlbSttmu7by/k4fML31FQ
+            XoR7JjrHmbI+f1BkwSbMVxxadAWpSkk/NNI1+SHR/nYSv/loQ3UjmA==
+            -----END CERTIFICATE-----""";
 
-    private DockerServerCredentialsConvertor convertor = new DockerServerCredentialsConvertor();
+    private final DockerServerCredentialsConvertor convertor = new DockerServerCredentialsConvertor();
 
     @Test
-    public void canConvert() throws Exception {
+    void canConvert() {
         assertThat("correct registration of valid type", convertor.canConvert("x509ClientCert"), is(true));
         assertThat("incorrect type is rejected", convertor.canConvert("somethingElse"), is(false));
     }
 
     @Test
-    public void canConvertAValidSecret() throws CredentialsConvertionException, IOException {
+    void canConvertAValidSecret() throws Exception {
         testExpectedCredentials("valid.yaml", "x509-valid", "Valid X.509 client certificate", CredentialsScope.GLOBAL);
     }
 
     @Test
-    public void canConvertAValidSecretWithNoDescription() throws CredentialsConvertionException, IOException {
+    void canConvertAValidSecretWithNoDescription() throws Exception {
         testExpectedCredentials("validNoDescription.yaml", "x509-valid-no-description", "", CredentialsScope.GLOBAL);
     }
 
     @Test
-    public void canConvertAValidMappedSecret() throws CredentialsConvertionException, IOException {
+    void canConvertAValidMappedSecret() throws Exception {
         testExpectedCredentials("validMapped.yaml", "x509-valid-mapped", "Valid mapped X.509 client certificate", CredentialsScope.GLOBAL);
     }
 
     @Test
-    public void canConvertAValidScopedSecret() throws CredentialsConvertionException, IOException {
+    void canConvertAValidScopedSecret() throws Exception {
         testExpectedCredentials("validScoped.yaml", "x509-valid-scoped", "Valid scoped X.509 client certificate", CredentialsScope.SYSTEM);
     }
 
     @Test
-    public void failsToConvertWhenDataIsEmpty() throws IOException {
+    void failsToConvertWhenDataIsEmpty() throws Exception {
         testNoData(convertor);
     }
 
     @Test
-    public void failsToConvertWhenClientCertificatIsCorrupt() throws IOException {
+    void failsToConvertWhenClientCertificateIsCorrupt() throws Exception {
         testCorruptField(convertor, "clientCertificate");
     }
 
     @Test
-    public void failsToConvertWhenClientKeySecretIsCorrupt() throws IOException {
+    void failsToConvertWhenClientKeySecretIsCorrupt() throws Exception {
         testCorruptField(convertor, "clientKeySecret");
     }
 
     @Test
-    public void failsToConvertWhenServerCaCertificatIsCorrupt() throws IOException {
+    void failsToConvertWhenServerCaCertificatIsCorrupt() throws Exception {
         testCorruptField(convertor, "serverCaCertificate");
     }
 
     @Test
-    public void failsToConvertWhenClientCertificateIsMissing() throws IOException {
+    void failsToConvertWhenClientCertificateIsMissing() throws Exception {
         testMissingField(convertor, "clientCertificate");
     }
 
     @Test
-    public void failsToConvertWhenClientKeySecretIsMissing() throws IOException {
+    void failsToConvertWhenClientKeySecretIsMissing() throws Exception {
         testMissingField(convertor, "clientKeySecret");
     }
 
     @Test
-    public void failsToConvertWhenServerCaCertificateIsMissing() throws IOException {
+    void failsToConvertWhenServerCaCertificateIsMissing() throws Exception {
         testMissingField(convertor, "serverCaCertificate");
     }
 
-    private void testExpectedCredentials(String resource, String id, String description, CredentialsScope scope) throws CredentialsConvertionException, IOException {
+    private void testExpectedCredentials(String resource, String id, String description, CredentialsScope scope) throws Exception {
         DockerServerCredentials credential = convertor.convert(getSecret(resource));
 
         assertThat("credential id is mapped correctly", credential.getId(), is(id));
         assertThat("credential description is mapped correctly", credential.getDescription(), is(description));
         assertThat("credential scope is mapped correctly", credential.getScope(), is(scope));
-        assertThat("credential clientCertificate is mapped correctly", credential.getClientCertificate(), is(clientCertificate));
-        assertThat("credential clientKeySecret is mapped correctly", Secret.toString(credential.getClientKeySecret()), is(clientKeySecret));
-        assertThat("credential serverCaCertificate is mapped correctly", credential.getServerCaCertificate(), is(serverCaCertificate));
+        assertThat("credential clientCertificate is mapped correctly", credential.getClientCertificate(), is(CLIENT_CERTIFICATE));
+        assertThat("credential clientKeySecret is mapped correctly", Secret.toString(credential.getClientKeySecret()), is(CLIENT_KEY_SECRET));
+        assertThat("credential serverCaCertificate is mapped correctly", credential.getServerCaCertificate(), is(SERVER_CA_CERTIFICATE));
     }
 }

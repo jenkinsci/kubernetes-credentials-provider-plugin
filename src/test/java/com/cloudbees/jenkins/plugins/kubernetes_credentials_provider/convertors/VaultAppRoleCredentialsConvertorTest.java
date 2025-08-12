@@ -23,39 +23,34 @@
  */
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors;
 
-import static org.hamcrest.CoreMatchers.*;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.emptyString;
-
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.datapipe.jenkins.vault.credentials.VaultAppRoleCredential;
 import io.fabric8.kubernetes.api.model.Secret;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.Issue;
+
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.emptyString;
 
 /**
  * Tests {@link VaultAppRoleCredentialsConvertor}
  */
-public class VaultAppRoleCredentialsConvertorTest extends AbstractConverterTest {
+class VaultAppRoleCredentialsConvertorTest extends AbstractConverterTest {
 
-    private VaultAppRoleCredentialsConvertor convertor;
-
-    @Before
-    public void setup() {
-        convertor = new VaultAppRoleCredentialsConvertor();
-    }
+    private final VaultAppRoleCredentialsConvertor convertor = new VaultAppRoleCredentialsConvertor();
 
     @Test
-    public void canConvert() throws Exception {
+    void canConvert() {
         assertThat("correct registration of valid type", convertor.canConvert("vaultAppRole"), is(true));
         assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
     }
 
     @Test
-    public void canConvertAValidSecret() throws Exception {
+    void canConvertAValidSecret() throws Exception {
         Secret secret = getSecret("valid.yaml");
-        assertThat("The Secret was loaded correctly from disk", notNullValue());
         VaultAppRoleCredential credential = convertor.convert(secret);
         assertThat(credential, notNullValue());
         assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultapprole"));
@@ -68,9 +63,8 @@ public class VaultAppRoleCredentialsConvertorTest extends AbstractConverterTest 
     }
 
     @Test
-    public void canConvertAValidSecretWithOptionalFields() throws Exception {
+    void canConvertAValidSecretWithOptionalFields() throws Exception {
         Secret secret = getSecret("validWithOptional.yaml");
-        assertThat("The Secret was loaded correctly from disk", notNullValue());
         VaultAppRoleCredential credential = convertor.convert(secret);
         assertThat(credential, notNullValue());
         assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultapprole"));
@@ -83,9 +77,8 @@ public class VaultAppRoleCredentialsConvertorTest extends AbstractConverterTest 
     }
 
     @Test
-    public void canConvertAValidMappedSecret() throws Exception {
+    void canConvertAValidMappedSecret() throws Exception {
         Secret secret = getSecret("validMapped.yaml");
-        assertThat("The Secret was loaded correctly from disk", notNullValue());
         VaultAppRoleCredential credential = convertor.convert(secret);
         assertThat(credential, notNullValue());
         assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultapprole"));
@@ -99,9 +92,8 @@ public class VaultAppRoleCredentialsConvertorTest extends AbstractConverterTest 
 
     @Issue("JENKINS-54313")
     @Test
-    public void canConvertAValidSecretWithNoDescription() throws Exception {
+    void canConvertAValidSecretWithNoDescription() throws Exception {
         Secret secret = getSecret("valid-no-desc.yaml");
-        assertThat("The Secret was loaded correctly from disk", notNullValue());
         VaultAppRoleCredential credential = convertor.convert(secret);
         assertThat(credential, notNullValue());
         assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultapprole"));
@@ -110,9 +102,8 @@ public class VaultAppRoleCredentialsConvertorTest extends AbstractConverterTest 
 
     @Issue("JENKINS-53105")
     @Test
-    public void canConvertAValidScopedSecret() throws Exception {
+    void canConvertAValidScopedSecret() throws Exception {
         Secret secret = getSecret("validScoped.yaml");
-        assertThat("The Secret was loaded correctly from disk", notNullValue());
         VaultAppRoleCredential credential = convertor.convert(secret);
         assertThat(credential, notNullValue());
         assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultapprole"));
@@ -121,38 +112,37 @@ public class VaultAppRoleCredentialsConvertorTest extends AbstractConverterTest 
     }
 
     @Test
-    public void failsToConvertWhenRoleIdMissing() throws Exception {
+    void failsToConvertWhenRoleIdMissing() throws Exception {
         testMissingField(convertor, "roleId");
     }
-    
+
     @Test
-    public void failsToConvertWhenSecredIdMissing() throws Exception {
+    void failsToConvertWhenSecretIdMissing() throws Exception {
         testMissingField(convertor, "secretId");
     }
 
     @Test
-    public void failsToConvertWhenRoleIdCorrupt() throws Exception {
+    void failsToConvertWhenRoleIdCorrupt() throws Exception {
         testCorruptField(convertor, "roleId");
     }
 
     @Test
-    public void failsToConvertWhenSecretIdCorrupt() throws Exception {
+    void failsToConvertWhenSecretIdCorrupt() throws Exception {
         testCorruptField(convertor, "secretId");
     }
 
     @Test
-    public void failsToConvertWhenPathCorrupt() throws Exception {
+    void failsToConvertWhenPathCorrupt() throws Exception {
         testCorruptField(convertor, "path");
     }
 
     @Test
-    public void failsToConvertWhenNamespaceCorrupt() throws Exception {
+    void failsToConvertWhenNamespaceCorrupt() throws Exception {
         testCorruptField(convertor, "namespace");
     }
 
     @Test
-    public void failsToConvertWhenDataEmpty() throws Exception {
+    void failsToConvertWhenDataEmpty() throws Exception {
         testNoData(convertor);
     }
-
 }

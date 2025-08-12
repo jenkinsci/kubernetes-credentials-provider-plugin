@@ -23,262 +23,166 @@
  */
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors;
 
-import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
+import com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsImpl;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.client.utils.Serialization;
-import com.cloudbees.jenkins.plugins.awscredentials.AWSCredentialsImpl;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.Issue;
 
-import java.io.InputStream;
-
-import static org.hamcrest.CoreMatchers.*;
+import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.emptyString;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 /**
  * Tests AWSCredentialConvertor
  */
-public class AWSCredentialsConvertorTest {
+class AWSCredentialsConvertorTest extends AbstractConverterTest {
 
-    String accessKey = "ABC123456";
-    String secretKey= "Pa$$word";
-    String iamRoleArn = "ecr:eu-west-1:86c8f5ec-1ce1-4e94-80c2-18e23bbd724a";
-    String iamMfaSerialNumber = "GAHT12345678";
+    private static final String ACCESS_KEY = "ABC123456";
+    private static final String SECRET_KEY = "Pa$$word";
+    private static final String IAM_ROLE_ARN = "ecr:eu-west-1:86c8f5ec-1ce1-4e94-80c2-18e23bbd724a";
+    private static final String IAM_MFA_SERIAL_NUMBER = "GAHT12345678";
+
+    private final AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
 
     @Test
-    public void canConvert() throws Exception {
-        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
+    void canConvert() {
         assertThat("correct registration of valid type", convertor.canConvert("aws"), is(true));
         assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
     }
 
     @Test
-    public void canConvertAValidSecret() throws Exception {
-        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
-
-        try (InputStream is = get("valid.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            assertThat("The Secret was loaded correctly from disk", notNullValue());
-            AWSCredentialsImpl credential = convertor.convert(secret);
-            assertThat(credential, notNullValue());
-            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
-            assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-            assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(accessKey));
-            assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(secretKey));
-            assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(iamRoleArn));
-            assertThat("credential iamMfaSerialNumber is mapped correctly", credential.getIamMfaSerialNumber(), is(iamMfaSerialNumber));
-        }
+    void canConvertAValidSecret() throws Exception {
+        Secret secret = getSecret("valid.yaml");
+        AWSCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(ACCESS_KEY));
+        assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(SECRET_KEY));
+        assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(IAM_ROLE_ARN));
+        assertThat("credential iamMfaSerialNumber is mapped correctly", credential.getIamMfaSerialNumber(), is(IAM_MFA_SERIAL_NUMBER));
     }
 
     @Test
-    public void canConvertAValidSecretWithNoIamRoleAndMfa() throws Exception {
-        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
-
-        try (InputStream is = get("validMissingIamRoleMfa.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            assertThat("The Secret was loaded correctly from disk", notNullValue());
-            AWSCredentialsImpl credential = convertor.convert(secret);
-            assertThat(credential, notNullValue());
-            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
-            assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-            assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(accessKey));
-            assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(secretKey));
-        }
+    void canConvertAValidSecretWithNoIamRoleAndMfa() throws Exception {
+        Secret secret = getSecret("validMissingIamRoleMfa.yaml");
+        AWSCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(ACCESS_KEY));
+        assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(SECRET_KEY));
     }
 
     @Test
-    public void canConvertAValidMappedSecret() throws Exception {
-        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
-
-        try (InputStream is = get("validMapped.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            assertThat("The Secret was loaded correctly from disk", notNullValue());
-            AWSCredentialsImpl credential = convertor.convert(secret);
-            assertThat(credential, notNullValue());
-            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
-            assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-            assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(accessKey));
-            assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(secretKey));
-            assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(iamRoleArn));
-            assertThat("credential iamMfaSerialNumber is mapped correctly", credential.getIamMfaSerialNumber(), is(iamMfaSerialNumber));
-        }
+    void canConvertAValidMappedSecret() throws Exception {
+        Secret secret = getSecret("validMapped.yaml");
+        AWSCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(ACCESS_KEY));
+        assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(SECRET_KEY));
+        assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(IAM_ROLE_ARN));
+        assertThat("credential iamMfaSerialNumber is mapped correctly", credential.getIamMfaSerialNumber(), is(IAM_MFA_SERIAL_NUMBER));
     }
 
     @Test
-    public void canConvertAValidSecretWithNoDescription() throws Exception {
-        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
-
-        try (InputStream is = get("valid-no-desc.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            assertThat("The Secret was loaded correctly from disk", notNullValue());
-            AWSCredentialsImpl credential = convertor.convert(secret);
-            assertThat(credential, notNullValue());
-            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
-            assertThat("credential description is mapped correctly", credential.getDescription(), is(emptyString()));
-            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-            assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(accessKey));
-            assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(secretKey));
-            assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(iamRoleArn));
-            assertThat("credential iamMfaSerialNumber is mapped correctly", credential.getIamMfaSerialNumber(), is(iamMfaSerialNumber));
-        }
+    void canConvertAValidSecretWithNoDescription() throws Exception {
+        Secret secret = getSecret("valid-no-desc.yaml");
+        AWSCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is(emptyString()));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(ACCESS_KEY));
+        assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(SECRET_KEY));
+        assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(IAM_ROLE_ARN));
+        assertThat("credential iamMfaSerialNumber is mapped correctly", credential.getIamMfaSerialNumber(), is(IAM_MFA_SERIAL_NUMBER));
     }
 
     @Test
-    public void canConvertAValidSecretWithNoIamRole() throws Exception {
-        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
-
-        try (InputStream is = get("validMissingIamRole.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            assertThat("The Secret was loaded correctly from disk", notNullValue());
-            AWSCredentialsImpl credential = convertor.convert(secret);
-            assertThat(credential, notNullValue());
-            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
-            assertThat("credential description is mapped correctly", credential.getDescription(), is(emptyString()));
-            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-            assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(accessKey));
-            assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(secretKey));
-            assertThat("credential iamMfaSerialNumber is mapped correctly", credential.getIamMfaSerialNumber(), is(iamMfaSerialNumber));
-        }
+    void canConvertAValidSecretWithNoIamRole() throws Exception {
+        Secret secret = getSecret("validMissingIamRole.yaml");
+        AWSCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is(emptyString()));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(ACCESS_KEY));
+        assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(SECRET_KEY));
+        assertThat("credential iamMfaSerialNumber is mapped correctly", credential.getIamMfaSerialNumber(), is(IAM_MFA_SERIAL_NUMBER));
     }
 
     @Test
-    public void canConvertAValidSecretWithNoIamMfa() throws Exception {
-        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
-
-        try (InputStream is = get("validMissingIamMfa.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            assertThat("The Secret was loaded correctly from disk", notNullValue());
-            AWSCredentialsImpl credential = convertor.convert(secret);
-            assertThat(credential, notNullValue());
-            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
-            assertThat("credential description is mapped correctly", credential.getDescription(), is(emptyString()));
-            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-            assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(accessKey));
-            assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(secretKey));
-            assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(iamRoleArn));
-        }
+    void canConvertAValidSecretWithNoIamMfa() throws Exception {
+        Secret secret = getSecret("validMissingIamMfa.yaml");
+        AWSCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is(emptyString()));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(ACCESS_KEY));
+        assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(SECRET_KEY));
+        assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(IAM_ROLE_ARN));
     }
 
     @Issue("JENKINS-53105")
     @Test
-    public void canConvertAValidScopedSecret() throws Exception {
-        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
-
-        try (InputStream is = get("validScoped.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            assertThat("The Secret was loaded correctly from disk", notNullValue());
-            AWSCredentialsImpl credential = convertor.convert(secret);
-            assertThat(credential, notNullValue());
-            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
-            assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
-            assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(accessKey));
-            assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(secretKey));
-            assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(iamRoleArn));
-            assertThat("credential iamMfaSerialNumber is mapped correctly", credential.getIamMfaSerialNumber(), is(iamMfaSerialNumber));
-        }
+    void canConvertAValidScopedSecret() throws Exception {
+        Secret secret = getSecret("validScoped.yaml");
+        AWSCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
+        assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), is(ACCESS_KEY));
+        assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), is(SECRET_KEY));
+        assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(IAM_ROLE_ARN));
+        assertThat("credential iamMfaSerialNumber is mapped correctly", credential.getIamMfaSerialNumber(), is(IAM_MFA_SERIAL_NUMBER));
     }
 
     @Test
-    public void canConvertAValidSecretWithNoAccessKeyAndSecretKey() throws Exception {
-        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
-
-        try (InputStream is = get("validMissingAccessKeyAndSecretKey.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            AWSCredentialsImpl credential = convertor.convert(secret);
-            assertThat(credential, notNullValue());
-            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
-            assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-            assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), emptyString());
-            assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(),  emptyString());
-            assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(iamRoleArn));
-        }
+    void canConvertAValidSecretWithNoAccessKeyAndSecretKey() throws Exception {
+        Secret secret = getSecret("validMissingAccessKeyAndSecretKey.yaml");
+        AWSCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-aws"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential accessKey is mapped correctly", credential.getAccessKey(), emptyString());
+        assertThat("credential secretKey is mapped correctly", credential.getSecretKey().getPlainText(), emptyString());
+        assertThat("credential iamRoleArn is mapped correctly", credential.getIamRoleArn(), is(IAM_ROLE_ARN));
     }
-
-
-
 
     // BASE64 Corrupt
     @Test
-    public void failsToConvertWhenAccessKeyCorrupt() throws Exception {
-        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
-
-        try (InputStream is = get("corruptAccessKey.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("invalid accessKey"));
-        }
-    }
-
-
-    @Test
-    public void failsToConvertWhenSecretKeyCorrupt() throws Exception {
-        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
-
-        try (InputStream is = get("corruptSecretKey.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("invalid secretKey"));
-        }
+    void failsToConvertWhenAccessKeyCorrupt() throws Exception {
+        testCorruptField(convertor, "accessKey");
     }
 
     @Test
-    public void failsToConvertWhenARNCorrupt() throws Exception {
-        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
-
-        try (InputStream is = get("corruptIAMRoleARN.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("invalid iamRoleArn"));
-        }
+    void failsToConvertWhenSecretKeyCorrupt() throws Exception {
+        testCorruptField(convertor, "secretKey");
     }
 
     @Test
-    public void failsToConvertWhenMFACorrupt() throws Exception {
-        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
-
-        try (InputStream is = get("corruptMFASerialNumber.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("invalid iamMfaSerialNumber"));
-        }
+    void failsToConvertWhenARNCorrupt() throws Exception {
+        testCorruptField(convertor, "iamRoleArn");
     }
-
 
     @Test
-    public void failsToConvertWhenDataEmpty() throws Exception {
-        AWSCredentialsConvertor convertor = new AWSCredentialsConvertor();
-
-        try (InputStream is = get("void.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("contains no data"));
-        }
+    void failsToConvertWhenMFACorrupt() throws Exception {
+        testCorruptField(convertor, "iamMfaSerialNumber");
     }
 
-
-    private static final InputStream get(String resource) {
-        InputStream is = AWSCredentialsConvertorTest.class.getResourceAsStream("AWSCredentialsConvertorTest/" + resource);
-        if (is == null) {
-            fail("failed to load resource " + resource);
-        }
-        return is;
+    @Test
+    void failsToConvertWhenDataEmpty() throws Exception {
+        testNoData(convertor);
     }
 }
