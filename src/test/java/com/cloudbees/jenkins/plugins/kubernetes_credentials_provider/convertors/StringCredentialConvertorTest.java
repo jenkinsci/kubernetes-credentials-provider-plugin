@@ -36,7 +36,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 /**
  * Tests StringCredentialCredentialsConvertor
  */
-class StringCredentialsConvertorTest extends AbstractConverterTest {
+class StringCredentialConvertorTest extends AbstractConverterTest {
 
     private final StringCredentialConvertor convertor = new StringCredentialConvertor();
 
