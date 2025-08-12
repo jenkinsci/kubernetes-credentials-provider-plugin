@@ -40,115 +40,115 @@ import static org.hamcrest.Matchers.emptyString;
  */
 class GitHubAppCredentialsConvertorTest extends AbstractConverterTest {
 
-	private final GitHubAppCredentialsConvertor convertor = new GitHubAppCredentialsConvertor();
+    private final GitHubAppCredentialsConvertor convertor = new GitHubAppCredentialsConvertor();
 
-	@Test
-	void canConvert() {
-		assertThat("correct registration of valid type", convertor.canConvert("gitHubApp"), is(true));
-		assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
-	}
+    @Test
+    void canConvert() {
+        assertThat("correct registration of valid type", convertor.canConvert("gitHubApp"), is(true));
+        assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
+    }
 
-	@Test
-	void canConvertAValidSecret() throws Exception {
-		Secret secret = getSecret("valid.yaml");
-		GitHubAppCredentials credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-githubapp"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-		assertThat("credential appID is mapped correctly", credential.getAppID(), is("1234"));
-		assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), is(notNullValue()));
-		assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), startsWith("-----BEGIN PRIVATE KEY-----"));
-	}
+    @Test
+    void canConvertAValidSecret() throws Exception {
+        Secret secret = getSecret("valid.yaml");
+        GitHubAppCredentials credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-githubapp"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential appID is mapped correctly", credential.getAppID(), is("1234"));
+        assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), is(notNullValue()));
+        assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), startsWith("-----BEGIN PRIVATE KEY-----"));
+    }
 
-	@Test
-	void canConvertAValidSecretWithOwner() throws Exception {
-		Secret secret = getSecret("validWithOwner.yaml");
-		GitHubAppCredentials credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-githubapp"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-		assertThat("credential appID is mapped correctly", credential.getAppID(), is("1234"));
-		assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), is(notNullValue()));
-		assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), startsWith("-----BEGIN PRIVATE KEY-----"));
-		assertThat("credential owner is mapped correctly", credential.getOwner(), is("cookies"));
-	}
+    @Test
+    void canConvertAValidSecretWithOwner() throws Exception {
+        Secret secret = getSecret("validWithOwner.yaml");
+        GitHubAppCredentials credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-githubapp"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential appID is mapped correctly", credential.getAppID(), is("1234"));
+        assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), is(notNullValue()));
+        assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), startsWith("-----BEGIN PRIVATE KEY-----"));
+        assertThat("credential owner is mapped correctly", credential.getOwner(), is("cookies"));
+    }
 
-	@Test
-	@Issue("JENKINS-69128")
-	void canConvertAValidSecretWithApiUri() throws Exception {
-		Secret secret = getSecret("validWithApiUri.yaml");
-		GitHubAppCredentials credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-githubapp"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-		assertThat("credential appID is mapped correctly", credential.getAppID(), is("1234"));
-		assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), is(notNullValue()));
-		assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), startsWith("-----BEGIN PRIVATE KEY-----"));
-		assertThat("credential apiUri is mapped correctly", credential.getApiUri(), is("https://github.example.com/api/v3"));
-	}
+    @Test
+    @Issue("JENKINS-69128")
+    void canConvertAValidSecretWithApiUri() throws Exception {
+        Secret secret = getSecret("validWithApiUri.yaml");
+        GitHubAppCredentials credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-githubapp"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential appID is mapped correctly", credential.getAppID(), is("1234"));
+        assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), is(notNullValue()));
+        assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), startsWith("-----BEGIN PRIVATE KEY-----"));
+        assertThat("credential apiUri is mapped correctly", credential.getApiUri(), is("https://github.example.com/api/v3"));
+    }
 
-	@Test
-	void canConvertAValidSecretWithNoDescription() throws Exception {
-		Secret secret = getSecret("valid-no-desc.yaml");
-		GitHubAppCredentials credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-githubapp"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is(emptyString()));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-		assertThat("credential appID is mapped correctly", credential.getAppID(), is("1234"));
-		assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), is(notNullValue()));
-		assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), startsWith("-----BEGIN PRIVATE KEY-----"));
-	}
+    @Test
+    void canConvertAValidSecretWithNoDescription() throws Exception {
+        Secret secret = getSecret("valid-no-desc.yaml");
+        GitHubAppCredentials credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-githubapp"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is(emptyString()));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential appID is mapped correctly", credential.getAppID(), is("1234"));
+        assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), is(notNullValue()));
+        assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), startsWith("-----BEGIN PRIVATE KEY-----"));
+    }
 
-	@Test
-	void canConvertAValidScopedSecret() throws Exception {
-		Secret secret = getSecret("validScoped.yaml");
-		GitHubAppCredentials credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-githubapp"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
-		assertThat("credential appID is mapped correctly", credential.getAppID(), is("1234"));
-		assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), is(notNullValue()));
-		assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), startsWith("-----BEGIN PRIVATE KEY-----"));
-	}
+    @Test
+    void canConvertAValidScopedSecret() throws Exception {
+        Secret secret = getSecret("validScoped.yaml");
+        GitHubAppCredentials credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-githubapp"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
+        assertThat("credential appID is mapped correctly", credential.getAppID(), is("1234"));
+        assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), is(notNullValue()));
+        assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), startsWith("-----BEGIN PRIVATE KEY-----"));
+    }
 
-	@Test
-	void failsToConvertWhenAppIdMissing() throws Exception {
-		testMissingField(convertor, "appID");
-	}
+    @Test
+    void failsToConvertWhenAppIdMissing() throws Exception {
+        testMissingField(convertor, "appID");
+    }
 
-	@Test
-	void failsToConvertWhenPrivateKeyMissing() throws Exception {
-		testMissingField(convertor, "privateKey");
-	}
+    @Test
+    void failsToConvertWhenPrivateKeyMissing() throws Exception {
+        testMissingField(convertor, "privateKey");
+    }
 
-	@Test
-	void failsToConvertWhenAppIdCorrupt() throws Exception {
-		testCorruptField(convertor, "appID");
-	}
+    @Test
+    void failsToConvertWhenAppIdCorrupt() throws Exception {
+        testCorruptField(convertor, "appID");
+    }
 
-	@Test
-	void failsToConvertWhenPrivateKeyCorrupt() throws Exception {
-		testCorruptField(convertor, "privateKey");
-	}
+    @Test
+    void failsToConvertWhenPrivateKeyCorrupt() throws Exception {
+        testCorruptField(convertor, "privateKey");
+    }
 
-	@Test
-	void failsToConvertWhenOwnerCorrupt() throws Exception {
-		testCorruptField(convertor, "owner");
-	}
+    @Test
+    void failsToConvertWhenOwnerCorrupt() throws Exception {
+        testCorruptField(convertor, "owner");
+    }
 
-	@Test
-	@Issue("JENKINS-69128")
-	void failsToConvertWhenApiUriCorrupt() throws Exception {
-		testCorruptField(convertor, "apiUri");
-	}
+    @Test
+    @Issue("JENKINS-69128")
+    void failsToConvertWhenApiUriCorrupt() throws Exception {
+        testCorruptField(convertor, "apiUri");
+    }
 
-	@Test
-	void failsToConvertWhenDataEmpty() throws Exception {
-		testNoData(convertor);
-	}
+    @Test
+    void failsToConvertWhenDataEmpty() throws Exception {
+        testNoData(convertor);
+    }
 }

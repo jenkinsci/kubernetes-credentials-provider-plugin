@@ -39,64 +39,64 @@ import static org.hamcrest.Matchers.emptyString;
  */
 class VaultTokenCredentialsConvertorTest extends AbstractConverterTest {
 
-	private final VaultTokenCredentialsConvertor convertor = new VaultTokenCredentialsConvertor();
+    private final VaultTokenCredentialsConvertor convertor = new VaultTokenCredentialsConvertor();
 
-	@Test
-	void canConvert() {
-		assertThat("correct registration of valid type", convertor.canConvert("vaultToken"), is(true));
-		assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
-	}
+    @Test
+    void canConvert() {
+        assertThat("correct registration of valid type", convertor.canConvert("vaultToken"), is(true));
+        assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
+    }
 
-	@Test
-	void canConvertAValidSecret() throws Exception {
-		Secret secret = getSecret("valid.yaml");
-		VaultTokenCredential credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaulttoken"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-		assertThat("credential roleId is mapped correctly", credential.getToken().getPlainText(), is("-myToken-"));
-	}
+    @Test
+    void canConvertAValidSecret() throws Exception {
+        Secret secret = getSecret("valid.yaml");
+        VaultTokenCredential credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaulttoken"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential roleId is mapped correctly", credential.getToken().getPlainText(), is("-myToken-"));
+    }
 
-	@Test
-	void canConvertAValidMappedSecret() throws Exception {
-		Secret secret = getSecret("validMapped.yaml");
-		VaultTokenCredential credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaulttoken"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-		assertThat("credential roleId is mapped correctly", credential.getToken().getPlainText(), is("-myToken-"));
-	}
+    @Test
+    void canConvertAValidMappedSecret() throws Exception {
+        Secret secret = getSecret("validMapped.yaml");
+        VaultTokenCredential credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaulttoken"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential roleId is mapped correctly", credential.getToken().getPlainText(), is("-myToken-"));
+    }
 
-	@Issue("JENKINS-54313")
-	@Test
-	void canConvertAValidSecretWithNoDescription() throws Exception {
-		Secret secret = getSecret("valid-no-desc.yaml");
-		VaultTokenCredential credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaulttoken"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is(emptyString()));
-	}
+    @Issue("JENKINS-54313")
+    @Test
+    void canConvertAValidSecretWithNoDescription() throws Exception {
+        Secret secret = getSecret("valid-no-desc.yaml");
+        VaultTokenCredential credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaulttoken"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is(emptyString()));
+    }
 
-	@Issue("JENKINS-53105")
-	@Test
-	void canConvertAValidScopedSecret() throws Exception {
-		Secret secret = getSecret("validScoped.yaml");
-		VaultTokenCredential credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaulttoken"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
-	}
+    @Issue("JENKINS-53105")
+    @Test
+    void canConvertAValidScopedSecret() throws Exception {
+        Secret secret = getSecret("validScoped.yaml");
+        VaultTokenCredential credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaulttoken"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
+    }
 
-	@Test
-	void failsToConvertWhenTokenCorrupt() throws Exception {
-		testCorruptField(convertor, "token");
-	}
+    @Test
+    void failsToConvertWhenTokenCorrupt() throws Exception {
+        testCorruptField(convertor, "token");
+    }
 
-	@Test
-	void failsToConvertWhenDataEmpty() throws Exception {
-		testNoData(convertor);
-	}
+    @Test
+    void failsToConvertWhenDataEmpty() throws Exception {
+        testNoData(convertor);
+    }
 }

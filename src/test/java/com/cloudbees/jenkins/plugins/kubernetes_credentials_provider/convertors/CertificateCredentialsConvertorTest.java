@@ -58,118 +58,118 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class CertificateCredentialsConvertorTest extends AbstractConverterTest {
 
-	@Mock
-	private ConfidentialStore confidentialStore;
-	@Mock
-	private MockedStatic<ConfidentialStore> confidentialStoreMockedStatic;
+    @Mock
+    private ConfidentialStore confidentialStore;
+    @Mock
+    private MockedStatic<ConfidentialStore> confidentialStoreMockedStatic;
 
-	// return null rather than go looking up Jenkins.getInstance....
-	@Mock
-	private MockedStatic<HistoricalSecrets> historicalSecretsMockedStatic;
+    // return null rather than go looking up Jenkins.getInstance....
+    @Mock
+    private MockedStatic<HistoricalSecrets> historicalSecretsMockedStatic;
 
-	private final CertificateCredentialsConvertor convertor = new CertificateCredentialsConvertor();
+    private final CertificateCredentialsConvertor convertor = new CertificateCredentialsConvertor();
 
-	@BeforeEach
-	void setup() {
-		confidentialStoreMockedStatic.when(ConfidentialStore::get).thenReturn(confidentialStore);
-		Mockito.when(confidentialStore.randomBytes(ArgumentMatchers.anyInt())).thenAnswer(it -> new byte[(Integer) (it.getArguments()[0])]);
-	}
+    @BeforeEach
+    void setup() {
+        confidentialStoreMockedStatic.when(ConfidentialStore::get).thenReturn(confidentialStore);
+        Mockito.when(confidentialStore.randomBytes(ArgumentMatchers.anyInt())).thenAnswer(it -> new byte[(Integer) (it.getArguments()[0])]);
+    }
 
-	@Test
-	void canConvert() {
-		assertThat("correct registration of valid type", convertor.canConvert("certificate"), is(true));
-		assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
-	}
+    @Test
+    void canConvert() {
+        assertThat("correct registration of valid type", convertor.canConvert("certificate"), is(true));
+        assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
+    }
 
-	@Test
-	void canConvertAValidSecret() throws Exception {
-		Secret secret = getSecret("valid.yaml");
-		CertificateCredentialsImpl credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-certificate"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("certificate credential from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-		assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("testPassword"));
-		KeyStore ks = credential.getKeyStore();
-		// credential.getKeyStore never returns null so we need to check the Keystore contains our certificate
-		assertThat("credential certificate mapped correctly ", ks.containsAlias("myKey"), is(true));
-		// TODO what can we check here to see this is valid
-		X509Certificate cert = (X509Certificate) ks.getCertificate("myKey");
-		assertThat("Correct cert", cert.getSubjectX500Principal().getName(), is("CN=A Test,OU=Dev,O=CloudBees,L=Around The World,ST=Cool,C=earth"));
-	}
+    @Test
+    void canConvertAValidSecret() throws Exception {
+        Secret secret = getSecret("valid.yaml");
+        CertificateCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-certificate"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("certificate credential from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("testPassword"));
+        KeyStore ks = credential.getKeyStore();
+        // credential.getKeyStore never returns null so we need to check the Keystore contains our certificate
+        assertThat("credential certificate mapped correctly ", ks.containsAlias("myKey"), is(true));
+        // TODO what can we check here to see this is valid
+        X509Certificate cert = (X509Certificate) ks.getCertificate("myKey");
+        assertThat("Correct cert", cert.getSubjectX500Principal().getName(), is("CN=A Test,OU=Dev,O=CloudBees,L=Around The World,ST=Cool,C=earth"));
+    }
 
-	@Test
-	void canConvertAValidSecretWithMapping() throws Exception {
-		Secret secret = getSecret("validMapped.yaml");
-		CertificateCredentialsImpl credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-certificate"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("certificate credential from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-		assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("testPassword"));
-		KeyStore ks = credential.getKeyStore();
-		// credential.getKeyStore never returns null so we need to check the Keystore contains our certificate
-		assertThat("credential certificate mapped correctly ", ks.containsAlias("myKey"), is(true));
-		// TODO what can we check here to see this is valid
-		X509Certificate cert = (X509Certificate) ks.getCertificate("myKey");
-		assertThat("Correct cert", cert.getSubjectX500Principal().getName(), is("CN=A Test,OU=Dev,O=CloudBees,L=Around The World,ST=Cool,C=earth"));
-	}
+    @Test
+    void canConvertAValidSecretWithMapping() throws Exception {
+        Secret secret = getSecret("validMapped.yaml");
+        CertificateCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-certificate"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("certificate credential from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("testPassword"));
+        KeyStore ks = credential.getKeyStore();
+        // credential.getKeyStore never returns null so we need to check the Keystore contains our certificate
+        assertThat("credential certificate mapped correctly ", ks.containsAlias("myKey"), is(true));
+        // TODO what can we check here to see this is valid
+        X509Certificate cert = (X509Certificate) ks.getCertificate("myKey");
+        assertThat("Correct cert", cert.getSubjectX500Principal().getName(), is("CN=A Test,OU=Dev,O=CloudBees,L=Around The World,ST=Cool,C=earth"));
+    }
 
-	@Issue("JENKINS-53105")
-	@Test
-	void canConvertAValidScopedSecret() throws Exception {
-		Secret secret = getSecret("validScoped.yaml");
-		CertificateCredentialsImpl credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-certificate"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("certificate credential from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
-		assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("testPassword"));
-		KeyStore ks = credential.getKeyStore();
-		// credential.getKeyStore never returns null so we need to check the Keystore contains our certificate
-		assertThat("credential certificate mapped correctly ", ks.containsAlias("myKey"), is(true));
-		// TODO what can we check here to see this is valid
-		X509Certificate cert = (X509Certificate) ks.getCertificate("myKey");
-		assertThat("Correct cert", cert.getSubjectX500Principal().getName(), is("CN=A Test,OU=Dev,O=CloudBees,L=Around The World,ST=Cool,C=earth"));
-	}
+    @Issue("JENKINS-53105")
+    @Test
+    void canConvertAValidScopedSecret() throws Exception {
+        Secret secret = getSecret("validScoped.yaml");
+        CertificateCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-certificate"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("certificate credential from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
+        assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("testPassword"));
+        KeyStore ks = credential.getKeyStore();
+        // credential.getKeyStore never returns null so we need to check the Keystore contains our certificate
+        assertThat("credential certificate mapped correctly ", ks.containsAlias("myKey"), is(true));
+        // TODO what can we check here to see this is valid
+        X509Certificate cert = (X509Certificate) ks.getCertificate("myKey");
+        assertThat("Correct cert", cert.getSubjectX500Principal().getName(), is("CN=A Test,OU=Dev,O=CloudBees,L=Around The World,ST=Cool,C=earth"));
+    }
 
-	@Test
-	void failsToConvertWhenCertificateMissing() throws Exception {
-		testMissingField(convertor, "certificate");
-	}
+    @Test
+    void failsToConvertWhenCertificateMissing() throws Exception {
+        testMissingField(convertor, "certificate");
+    }
 
-	@Test
-	void failsToConvertWhenPasswordMissing() throws Exception {
-		testMissingField(convertor, "password");
-	}
+    @Test
+    void failsToConvertWhenPasswordMissing() throws Exception {
+        testMissingField(convertor, "password");
+    }
 
-	/**
-	 * Tests when the certificate is not a valid certificate
-	 */
-	@Test
-	void failsToConvertWhenCertificateCorruptPKCS12() throws Exception {
-		Secret secret = getSecret("corruptCertificatePKCS12.yaml");
-		CredentialsConvertionException cex = assertThrows(CredentialsConvertionException.class, () -> convertor.convert(secret));
-		assertThat(cex.getMessage(), allOf(containsString("invalid certificate"), containsString("PKCS#12")));
-	}
+    /**
+     * Tests when the certificate is not a valid certificate
+     */
+    @Test
+    void failsToConvertWhenCertificateCorruptPKCS12() throws Exception {
+        Secret secret = getSecret("corruptCertificatePKCS12.yaml");
+        CredentialsConvertionException cex = assertThrows(CredentialsConvertionException.class, () -> convertor.convert(secret));
+        assertThat(cex.getMessage(), allOf(containsString("invalid certificate"), containsString("PKCS#12")));
+    }
 
-	/**
-	 * Tests when the certificate is not valid base64
-	 */
-	@Test
-	void failsToConvertWhenCertificateCorruptBase64() throws Exception {
-		Secret secret = getSecret("corruptBase64Certificate.yaml");
-		CredentialsConvertionException cex = assertThrows(CredentialsConvertionException.class, () -> convertor.convert(secret));
-		assertThat(cex.getMessage(), allOf(containsString("invalid certificate"), containsString("base64")));
-	}
+    /**
+     * Tests when the certificate is not valid base64
+     */
+    @Test
+    void failsToConvertWhenCertificateCorruptBase64() throws Exception {
+        Secret secret = getSecret("corruptBase64Certificate.yaml");
+        CredentialsConvertionException cex = assertThrows(CredentialsConvertionException.class, () -> convertor.convert(secret));
+        assertThat(cex.getMessage(), allOf(containsString("invalid certificate"), containsString("base64")));
+    }
 
-	@Test
-	void failsToConvertWhenPasswordCorrupt() throws Exception {
-		testCorruptField(convertor, "password");
-	}
+    @Test
+    void failsToConvertWhenPasswordCorrupt() throws Exception {
+        testCorruptField(convertor, "password");
+    }
 
-	@Test
-	void failsToConvertWhenDataEmpty() throws Exception {
-		testNoData(convertor);
-	}
+    @Test
+    void failsToConvertWhenDataEmpty() throws Exception {
+        testNoData(convertor);
+    }
 }

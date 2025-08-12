@@ -38,60 +38,60 @@ import static org.hamcrest.MatcherAssert.assertThat;
  */
 class StringCredentialsConvertorTest extends AbstractConverterTest {
 
-	private final StringCredentialConvertor convertor = new StringCredentialConvertor();
+    private final StringCredentialConvertor convertor = new StringCredentialConvertor();
 
-	@Test
-	void canConvert() {
-		assertThat("correct registration of valid type", convertor.canConvert("secretText"), is(true));
-		assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
-	}
+    @Test
+    void canConvert() {
+        assertThat("correct registration of valid type", convertor.canConvert("secretText"), is(true));
+        assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
+    }
 
-	@Test
-	void canConvertAValidSecret() throws Exception {
-		Secret secret = getSecret("valid.yaml");
-		StringCredentialsImpl credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-secret"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("secret text credential from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-		assertThat("credential text is mapped correctly", credential.getSecret().getPlainText(), is("mySecret!"));
-	}
+    @Test
+    void canConvertAValidSecret() throws Exception {
+        Secret secret = getSecret("valid.yaml");
+        StringCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-secret"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("secret text credential from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential text is mapped correctly", credential.getSecret().getPlainText(), is("mySecret!"));
+    }
 
-	@Test
-	void canConvertAValidMappedSecret() throws Exception {
-		Secret secret = getSecret("valid.yaml");
-		StringCredentialsImpl credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-secret"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("secret text credential from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-		assertThat("credential text is mapped correctly", credential.getSecret().getPlainText(), is("mySecret!"));
-	}
+    @Test
+    void canConvertAValidMappedSecret() throws Exception {
+        Secret secret = getSecret("valid.yaml");
+        StringCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-secret"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("secret text credential from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential text is mapped correctly", credential.getSecret().getPlainText(), is("mySecret!"));
+    }
 
-	@Issue("JENKINS-53105")
-	@Test
-	void canConvertAValidScopedSecret() throws Exception {
-		Secret secret = getSecret("validScoped.yaml");
-		StringCredentialsImpl credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-secret"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("secret text credential from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
-		assertThat("credential text is mapped correctly", credential.getSecret().getPlainText(), is("mySecret!"));
-	}
+    @Issue("JENKINS-53105")
+    @Test
+    void canConvertAValidScopedSecret() throws Exception {
+        Secret secret = getSecret("validScoped.yaml");
+        StringCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-secret"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("secret text credential from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
+        assertThat("credential text is mapped correctly", credential.getSecret().getPlainText(), is("mySecret!"));
+    }
 
-	@Test
-	void failsToConvertWhenTextMissing() throws Exception {
-		testMissingField(convertor, "text");
-	}
+    @Test
+    void failsToConvertWhenTextMissing() throws Exception {
+        testMissingField(convertor, "text");
+    }
 
-	@Test
-	void failsToConvertWhenTextCorrupt() throws Exception {
-		testCorruptField(convertor, "text");
-	}
+    @Test
+    void failsToConvertWhenTextCorrupt() throws Exception {
+        testCorruptField(convertor, "text");
+    }
 
-	@Test
-	void failsToConvertWhenDataEmpty() throws Exception {
-		testNoData(convertor);
-	}
+    @Test
+    void failsToConvertWhenDataEmpty() throws Exception {
+        testNoData(convertor);
+    }
 }

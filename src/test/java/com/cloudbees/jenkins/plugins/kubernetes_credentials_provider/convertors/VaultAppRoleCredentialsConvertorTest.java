@@ -40,109 +40,109 @@ import static org.hamcrest.Matchers.emptyString;
  */
 class VaultAppRoleCredentialsConvertorTest extends AbstractConverterTest {
 
-	private final VaultAppRoleCredentialsConvertor convertor = new VaultAppRoleCredentialsConvertor();
+    private final VaultAppRoleCredentialsConvertor convertor = new VaultAppRoleCredentialsConvertor();
 
-	@Test
-	void canConvert() {
-		assertThat("correct registration of valid type", convertor.canConvert("vaultAppRole"), is(true));
-		assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
-	}
+    @Test
+    void canConvert() {
+        assertThat("correct registration of valid type", convertor.canConvert("vaultAppRole"), is(true));
+        assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
+    }
 
-	@Test
-	void canConvertAValidSecret() throws Exception {
-		Secret secret = getSecret("valid.yaml");
-		VaultAppRoleCredential credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultapprole"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-		assertThat("credential roleId is mapped correctly", credential.getRoleId(), is("myRoleId"));
-		assertThat("credential secretId is mapped correctly", credential.getSecretId().getPlainText(), is("-mySecretId-"));
-		assertThat("credential path is mapped correctly", credential.getPath(), is("approle"));
-		assertThat("credential namespace is mapped correctly", credential.getNamespace(), nullValue());
-	}
+    @Test
+    void canConvertAValidSecret() throws Exception {
+        Secret secret = getSecret("valid.yaml");
+        VaultAppRoleCredential credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultapprole"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential roleId is mapped correctly", credential.getRoleId(), is("myRoleId"));
+        assertThat("credential secretId is mapped correctly", credential.getSecretId().getPlainText(), is("-mySecretId-"));
+        assertThat("credential path is mapped correctly", credential.getPath(), is("approle"));
+        assertThat("credential namespace is mapped correctly", credential.getNamespace(), nullValue());
+    }
 
-	@Test
-	void canConvertAValidSecretWithOptionalFields() throws Exception {
-		Secret secret = getSecret("validWithOptional.yaml");
-		VaultAppRoleCredential credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultapprole"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-		assertThat("credential roleId is mapped correctly", credential.getRoleId(), is("myRoleId"));
-		assertThat("credential secretId is mapped correctly", credential.getSecretId().getPlainText(), is("-mySecretId-"));
-		assertThat("credential path is mapped correctly", credential.getPath(), is("approle-jenkins"));
-		assertThat("credential namespace is mapped correctly", credential.getNamespace(), is("coolstuff"));
-	}
+    @Test
+    void canConvertAValidSecretWithOptionalFields() throws Exception {
+        Secret secret = getSecret("validWithOptional.yaml");
+        VaultAppRoleCredential credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultapprole"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential roleId is mapped correctly", credential.getRoleId(), is("myRoleId"));
+        assertThat("credential secretId is mapped correctly", credential.getSecretId().getPlainText(), is("-mySecretId-"));
+        assertThat("credential path is mapped correctly", credential.getPath(), is("approle-jenkins"));
+        assertThat("credential namespace is mapped correctly", credential.getNamespace(), is("coolstuff"));
+    }
 
-	@Test
-	void canConvertAValidMappedSecret() throws Exception {
-		Secret secret = getSecret("validMapped.yaml");
-		VaultAppRoleCredential credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultapprole"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-		assertThat("credential roleId is mapped correctly", credential.getRoleId(), is("myRoleId"));
-		assertThat("credential secretId is mapped correctly", credential.getSecretId().getPlainText(), is("-mySecretId-"));
-		assertThat("credential path is mapped correctly", credential.getPath(), is("approle-jenkins"));
-		assertThat("credential namespace is mapped correctly", credential.getNamespace(), is("coolstuff"));
-	}
+    @Test
+    void canConvertAValidMappedSecret() throws Exception {
+        Secret secret = getSecret("validMapped.yaml");
+        VaultAppRoleCredential credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultapprole"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential roleId is mapped correctly", credential.getRoleId(), is("myRoleId"));
+        assertThat("credential secretId is mapped correctly", credential.getSecretId().getPlainText(), is("-mySecretId-"));
+        assertThat("credential path is mapped correctly", credential.getPath(), is("approle-jenkins"));
+        assertThat("credential namespace is mapped correctly", credential.getNamespace(), is("coolstuff"));
+    }
 
-	@Issue("JENKINS-54313")
-	@Test
-	void canConvertAValidSecretWithNoDescription() throws Exception {
-		Secret secret = getSecret("valid-no-desc.yaml");
-		VaultAppRoleCredential credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultapprole"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is(emptyString()));
-	}
+    @Issue("JENKINS-54313")
+    @Test
+    void canConvertAValidSecretWithNoDescription() throws Exception {
+        Secret secret = getSecret("valid-no-desc.yaml");
+        VaultAppRoleCredential credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultapprole"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is(emptyString()));
+    }
 
-	@Issue("JENKINS-53105")
-	@Test
-	void canConvertAValidScopedSecret() throws Exception {
-		Secret secret = getSecret("validScoped.yaml");
-		VaultAppRoleCredential credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultapprole"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
-	}
+    @Issue("JENKINS-53105")
+    @Test
+    void canConvertAValidScopedSecret() throws Exception {
+        Secret secret = getSecret("validScoped.yaml");
+        VaultAppRoleCredential credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-vaultapprole"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
+    }
 
-	@Test
-	void failsToConvertWhenRoleIdMissing() throws Exception {
-		testMissingField(convertor, "roleId");
-	}
+    @Test
+    void failsToConvertWhenRoleIdMissing() throws Exception {
+        testMissingField(convertor, "roleId");
+    }
 
-	@Test
-	void failsToConvertWhenSecretIdMissing() throws Exception {
-		testMissingField(convertor, "secretId");
-	}
+    @Test
+    void failsToConvertWhenSecretIdMissing() throws Exception {
+        testMissingField(convertor, "secretId");
+    }
 
-	@Test
-	void failsToConvertWhenRoleIdCorrupt() throws Exception {
-		testCorruptField(convertor, "roleId");
-	}
+    @Test
+    void failsToConvertWhenRoleIdCorrupt() throws Exception {
+        testCorruptField(convertor, "roleId");
+    }
 
-	@Test
-	void failsToConvertWhenSecretIdCorrupt() throws Exception {
-		testCorruptField(convertor, "secretId");
-	}
+    @Test
+    void failsToConvertWhenSecretIdCorrupt() throws Exception {
+        testCorruptField(convertor, "secretId");
+    }
 
-	@Test
-	void failsToConvertWhenPathCorrupt() throws Exception {
-		testCorruptField(convertor, "path");
-	}
+    @Test
+    void failsToConvertWhenPathCorrupt() throws Exception {
+        testCorruptField(convertor, "path");
+    }
 
-	@Test
-	void failsToConvertWhenNamespaceCorrupt() throws Exception {
-		testCorruptField(convertor, "namespace");
-	}
+    @Test
+    void failsToConvertWhenNamespaceCorrupt() throws Exception {
+        testCorruptField(convertor, "namespace");
+    }
 
-	@Test
-	void failsToConvertWhenDataEmpty() throws Exception {
-		testNoData(convertor);
-	}
+    @Test
+    void failsToConvertWhenDataEmpty() throws Exception {
+        testNoData(convertor);
+    }
 }

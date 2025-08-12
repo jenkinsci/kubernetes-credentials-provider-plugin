@@ -53,88 +53,88 @@ import static org.hamcrest.MatcherAssert.assertThat;
 @MockitoSettings(strictness = Strictness.LENIENT)
 class FileCredentialsConvertorTest extends AbstractConverterTest {
 
-	@Mock
-	private ConfidentialStore confidentialStore;
-	@Mock
-	private MockedStatic<ConfidentialStore> confidentialStoreMockedStatic;
+    @Mock
+    private ConfidentialStore confidentialStore;
+    @Mock
+    private MockedStatic<ConfidentialStore> confidentialStoreMockedStatic;
 
-	// return null rather than go looking up Jenkins.getInstance....
-	@Mock
-	private MockedStatic<HistoricalSecrets> historicalSecretsMockedStatic;
+    // return null rather than go looking up Jenkins.getInstance....
+    @Mock
+    private MockedStatic<HistoricalSecrets> historicalSecretsMockedStatic;
 
-	private final FileCredentialsConvertor convertor = new FileCredentialsConvertor();
+    private final FileCredentialsConvertor convertor = new FileCredentialsConvertor();
 
-	@BeforeEach
-	void setup() {
-		confidentialStoreMockedStatic.when(ConfidentialStore::get).thenReturn(confidentialStore);
-		Mockito.when(confidentialStore.randomBytes(ArgumentMatchers.anyInt())).thenAnswer(it -> new byte[(Integer) (it.getArguments()[0])]);
-	}
+    @BeforeEach
+    void setup() {
+        confidentialStoreMockedStatic.when(ConfidentialStore::get).thenReturn(confidentialStore);
+        Mockito.when(confidentialStore.randomBytes(ArgumentMatchers.anyInt())).thenAnswer(it -> new byte[(Integer) (it.getArguments()[0])]);
+    }
 
-	@Test
-	void canConvert() {
-		assertThat("correct registration of valid type", convertor.canConvert("secretFile"), is(true));
-		assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
-	}
+    @Test
+    void canConvert() {
+        assertThat("correct registration of valid type", convertor.canConvert("secretFile"), is(true));
+        assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
+    }
 
-	@Test
-	void canConvertAValidSecret() throws Exception {
-		Secret secret = getSecret("valid.yaml");
-		FileCredentialsImpl credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("another-test-file"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("secret file credential from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-		assertThat("credential username is mapped correctly", credential.getFileName(), is("mySecret.txt"));
-		assertThat("credential password is mapped correctly", credential.getSecretBytes().getPlainData(), is("Hello World!".getBytes(StandardCharsets.UTF_8)));
-	}
+    @Test
+    void canConvertAValidSecret() throws Exception {
+        Secret secret = getSecret("valid.yaml");
+        FileCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("another-test-file"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("secret file credential from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential username is mapped correctly", credential.getFileName(), is("mySecret.txt"));
+        assertThat("credential password is mapped correctly", credential.getSecretBytes().getPlainData(), is("Hello World!".getBytes(StandardCharsets.UTF_8)));
+    }
 
-	@Test
-	void canConvertAValidMappedSecret() throws Exception {
-		Secret secret = getSecret("validMapped.yaml");
-		FileCredentialsImpl credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("another-test-file"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("secret file credential from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-		assertThat("credential username is mapped correctly", credential.getFileName(), is("mySecret.txt"));
-		assertThat("credential password is mapped correctly", credential.getSecretBytes().getPlainData(), is("Hello World!".getBytes(StandardCharsets.UTF_8)));
-	}
+    @Test
+    void canConvertAValidMappedSecret() throws Exception {
+        Secret secret = getSecret("validMapped.yaml");
+        FileCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("another-test-file"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("secret file credential from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential username is mapped correctly", credential.getFileName(), is("mySecret.txt"));
+        assertThat("credential password is mapped correctly", credential.getSecretBytes().getPlainData(), is("Hello World!".getBytes(StandardCharsets.UTF_8)));
+    }
 
-	@Issue("JENKINS-53105")
-	@Test
-	void canConvertAValidScopedSecret() throws Exception {
-		Secret secret = getSecret("validScoped.yaml");
-		FileCredentialsImpl credential = convertor.convert(secret);
-		assertThat(credential, notNullValue());
-		assertThat("credential id is mapped correctly", credential.getId(), is("another-test-file"));
-		assertThat("credential description is mapped correctly", credential.getDescription(), is("secret file credential from Kubernetes"));
-		assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
-		assertThat("credential username is mapped correctly", credential.getFileName(), is("mySecret.txt"));
-		assertThat("credential password is mapped correctly", credential.getSecretBytes().getPlainData(), is("Hello World!".getBytes(StandardCharsets.UTF_8)));
-	}
+    @Issue("JENKINS-53105")
+    @Test
+    void canConvertAValidScopedSecret() throws Exception {
+        Secret secret = getSecret("validScoped.yaml");
+        FileCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("another-test-file"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("secret file credential from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
+        assertThat("credential username is mapped correctly", credential.getFileName(), is("mySecret.txt"));
+        assertThat("credential password is mapped correctly", credential.getSecretBytes().getPlainData(), is("Hello World!".getBytes(StandardCharsets.UTF_8)));
+    }
 
-	@Test
-	void failsToConvertWhenFilenameMissing() throws Exception {
-		testMissingField(convertor, "filename");
-	}
+    @Test
+    void failsToConvertWhenFilenameMissing() throws Exception {
+        testMissingField(convertor, "filename");
+    }
 
-	@Test
-	void failsToConvertWhenDataMissing() throws Exception {
-		testMissingField(convertor, "data");
-	}
+    @Test
+    void failsToConvertWhenDataMissing() throws Exception {
+        testMissingField(convertor, "data");
+    }
 
-	@Test
-	void failsToConvertWhenFilenameCorrupt() throws Exception {
-		testCorruptField(convertor, "filename");
-	}
+    @Test
+    void failsToConvertWhenFilenameCorrupt() throws Exception {
+        testCorruptField(convertor, "filename");
+    }
 
-	@Test
-	void failsToConvertWhenDataCorrupt() throws Exception {
-		testCorruptField(convertor, "data");
-	}
+    @Test
+    void failsToConvertWhenDataCorrupt() throws Exception {
+        testCorruptField(convertor, "data");
+    }
 
-	@Test
-	void failsToConvertWhenDataEmpty() throws Exception {
-		testNoData(convertor);
-	}
+    @Test
+    void failsToConvertWhenDataEmpty() throws Exception {
+        testNoData(convertor);
+    }
 }
