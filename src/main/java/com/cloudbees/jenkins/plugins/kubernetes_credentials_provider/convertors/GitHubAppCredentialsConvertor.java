@@ -28,7 +28,9 @@ import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretToCre
 import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.SecretUtils;
 import io.fabric8.kubernetes.api.model.Secret;
 import org.jenkinsci.plugins.github_branch_source.GitHubAppCredentials;
+import org.jenkinsci.plugins.github_branch_source.app_credentials.AccessSpecifiedRepositories;
 import org.jenkinsci.plugins.variant.OptionalExtension;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -62,9 +64,10 @@ public class GitHubAppCredentialsConvertor extends SecretToCredentialConverter {
 
         GitHubAppCredentials credentials = new GitHubAppCredentials(SecretUtils.getCredentialScope(secret), SecretUtils.getCredentialId(secret), SecretUtils.getCredentialDescription(secret), appID, privateKeySecret);
 
+        // TODO: Offer configuration options comparable to https://github.com/jenkinsci/github-branch-source-plugin/pull/822
         if (ownerBase64.isPresent()) {
             String owner = SecretUtils.requireNonNull(SecretUtils.base64DecodeToString(ownerBase64.get()), "gitHubApp credential has an invalid owner (must be base64 encoded data)");
-            credentials.setOwner(owner);
+            credentials.setRepositoryAccessStrategy(new AccessSpecifiedRepositories(owner, List.of()));
         }
 
         if (apiUriBase64.isPresent()) {
