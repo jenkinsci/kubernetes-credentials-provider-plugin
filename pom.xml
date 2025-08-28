@@ -81,6 +81,7 @@
         <groupId>io.jenkins.tools.bom</groupId>
         <artifactId>bom-${jenkins.baseline}.x</artifactId>
         <!-- ensure okhttp-bom is aligned when this is updated -->
+        <!-- remove override for  github-branch-source when the bom includes 1844.v4a_9883d49126 or higher -->
         <version>5015.vb_52d36583443</version>
         <scope>import</scope>
         <type>pom</type>
