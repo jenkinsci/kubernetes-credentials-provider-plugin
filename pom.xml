@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>4.88</version>
+    <version>5.17</version>
     <relativePath />
   </parent>
 
@@ -45,9 +45,9 @@
   <properties>
     <revision>1</revision>
     <changelist>999999-SNAPSHOT</changelist>
-    <jenkins.baseline>2.452</jenkins.baseline>
-    <jenkins.version>${jenkins.baseline}.4</jenkins.version>
-    <junit5.version>5.10.0</junit5.version>
+    <jenkins.baseline>2.504</jenkins.baseline>
+    <jenkins.version>${jenkins.baseline}.1</jenkins.version>
+    <junit5.version>5.13.2</junit5.version>
   </properties>
 
   <scm>
@@ -80,7 +80,8 @@
       <dependency>
         <groupId>io.jenkins.tools.bom</groupId>
         <artifactId>bom-${jenkins.baseline}.x</artifactId>
-        <version>3696.vb_b_4e2d1a_0542</version>
+        <!-- ensure okhttp-bom is aligned when this is updated -->
+        <version>5015.vb_52d36583443</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -102,17 +103,7 @@
       <dependency>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>openstack-cloud</artifactId>
-        <version>2.63</version>
-        <exclusions>
-          <exclusion>
-            <groupId>com.squareup.okhttp3</groupId>
-            <artifactId>okhttp</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>com.github.stephenc.findbugs</groupId>
-            <artifactId>findbugs-annotations</artifactId>
-          </exclusion>
-        </exclusions>
+        <version>1456.v1c7380506a_ed</version>
       </dependency>
       <dependency>
         <groupId>com.datapipe.jenkins.plugins</groupId>
@@ -163,14 +154,6 @@
     <dependency>
       <groupId>org.jenkins-ci.plugins</groupId>
       <artifactId>openstack-cloud</artifactId>
-      <!-- https://github.com/jenkinsci/openstack-cloud-plugin/issues/367 -->
-      <exclusions>
-        <exclusion>
-          <!-- from snakeyaml-api -->
-          <groupId>org.yaml</groupId>
-          <artifactId>snakeyaml</artifactId>
-        </exclusion>
-      </exclusions>
       <optional>true</optional>
     </dependency>
       <!-- Basic Username PrivateKey -->
@@ -216,7 +199,7 @@
     <dependency>
       <groupId>io.fabric8</groupId>
       <artifactId>kubernetes-server-mock</artifactId>
-      <version>6.10.0</version>
+      <version>7.3.1</version>
       <scope>test</scope>
       <exclusions>
         <!--
