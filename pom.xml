@@ -81,6 +81,7 @@
         <groupId>io.jenkins.tools.bom</groupId>
         <artifactId>bom-${jenkins.baseline}.x</artifactId>
         <!-- ensure okhttp-bom is aligned when this is updated -->
+        <!-- remove override for  github-branch-source when the bom includes 1844.v4a_9883d49126 or higher -->
         <version>5015.vb_52d36583443</version>
         <scope>import</scope>
         <type>pom</type>
@@ -114,6 +115,12 @@
         <groupId>org.jenkins-ci.ui</groupId>
         <artifactId>jquery-detached</artifactId>
         <version>1.2.1</version>
+      </dependency>
+      <dependency>
+        <!-- TODO: Remove when included in BOM -->
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>github-branch-source</artifactId>
+        <version>1844.v4a_9883d49126</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
