@@ -31,6 +31,8 @@ import org.jenkinsci.plugins.github_branch_source.app_credentials.AccessSpecifie
 import org.junit.jupiter.api.Test;
 import org.jvnet.hudson.test.Issue;
 
+import java.io.InputStream;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.CoreMatchers.startsWith;
@@ -66,23 +68,18 @@ class GitHubAppCredentialsConvertorTest extends AbstractConverterTest {
 
     @Test
     void canConvertAValidSecretWithOwner() throws Exception {
-        GitHubAppCredentialsConvertor convertor = new GitHubAppCredentialsConvertor();
-
-        try (InputStream is = get("validWithOwner.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            assertThat("The Secret was loaded correctly from disk", notNullValue());
-            GitHubAppCredentials credential = convertor.convert(secret);
-            assertThat(credential, notNullValue());
-            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-githubapp"));
-            assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-            assertThat("credential appID is mapped correctly", credential.getAppID(), is("1234"));
-            assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), is(notNullValue()));
-            assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), startsWith("-----BEGIN PRIVATE KEY-----"));
-            assertThat("credential repository access strategy is mapped correctly", credential.getRepositoryAccessStrategy(), instanceOf(AccessSpecifiedRepositories.class));
-            var strategy = (AccessSpecifiedRepositories) credential.getRepositoryAccessStrategy();
-            assertThat("credential owner is mapped correctly", strategy.getOwner(), is("cookies"));
-        }
+        Secret secret = getSecret("validWithOwner.yaml");
+        GitHubAppCredentials credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-githubapp"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential appID is mapped correctly", credential.getAppID(), is("1234"));
+        assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), is(notNullValue()));
+        assertThat("credential privateKey is mapped correctly", credential.getPrivateKey().getPlainText(), startsWith("-----BEGIN PRIVATE KEY-----"));
+        assertThat("credential repository access strategy is mapped correctly", credential.getRepositoryAccessStrategy(), instanceOf(AccessSpecifiedRepositories.class));
+        var strategy = (AccessSpecifiedRepositories) credential.getRepositoryAccessStrategy();
+        assertThat("credential owner is mapped correctly", strategy.getOwner(), is("cookies"));
     }
 
     @Test
