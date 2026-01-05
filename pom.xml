@@ -27,7 +27,7 @@
   <parent>
     <groupId>org.jenkins-ci.plugins</groupId>
     <artifactId>plugin</artifactId>
-    <version>5.17</version>
+    <version>5.2102.v5f5fe09fccf1</version>
     <relativePath />
   </parent>
 
@@ -46,7 +46,7 @@
     <revision>1</revision>
     <changelist>999999-SNAPSHOT</changelist>
     <jenkins.baseline>2.504</jenkins.baseline>
-    <jenkins.version>${jenkins.baseline}.1</jenkins.version>
+    <jenkins.version>${jenkins.baseline}.3</jenkins.version>
     <junit5.version>5.13.2</junit5.version>
   </properties>
 
@@ -81,8 +81,7 @@
         <groupId>io.jenkins.tools.bom</groupId>
         <artifactId>bom-${jenkins.baseline}.x</artifactId>
         <!-- ensure okhttp-bom is aligned when this is updated -->
-        <!-- remove override for  github-branch-source when the bom includes 1844.v4a_9883d49126 or higher -->
-        <version>5015.vb_52d36583443</version>
+        <version>5804.v80587a_38d937</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -90,7 +89,7 @@
         <groupId>com.squareup.okhttp3</groupId>
         <artifactId>okhttp-bom</artifactId>
         <!-- needs to be aligned with the version of okhttp-api in the plugin bom -->
-        <version>4.11.0</version>
+        <version>4.12.0</version>
         <scope>import</scope>
         <type>pom</type>
       </dependency>
@@ -115,12 +114,6 @@
         <groupId>org.jenkins-ci.ui</groupId>
         <artifactId>jquery-detached</artifactId>
         <version>1.2.1</version>
-      </dependency>
-      <dependency>
-        <!-- TODO: Remove when included in BOM -->
-        <groupId>org.jenkins-ci.plugins</groupId>
-        <artifactId>github-branch-source</artifactId>
-        <version>1844.v4a_9883d49126</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
