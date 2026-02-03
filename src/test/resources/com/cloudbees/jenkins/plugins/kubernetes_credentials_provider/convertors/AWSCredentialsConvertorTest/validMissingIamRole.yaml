@@ -12,4 +12,5 @@ data:
   accessKey: QUJDMTIzNDU2              #ABC123456
   secretKey: UGEkJHdvcmQ=              #Pa$$word
   iamMfaSerialNumber: R0FIVDEyMzQ1Njc4 #GAHT12345678
+  iamExternalId: ZXh0LWlk              #ext-id
 

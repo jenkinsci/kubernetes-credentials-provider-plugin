@@ -17,8 +17,6 @@ metadata:
     "jenkins.io/credentials-keybinding-iamRoleArn" : "r"
     # map the iamMfaSerialNumber field to m
     "jenkins.io/credentials-keybinding-iamMfaSerialNumber" : "m"
-    # map the iamExternalId field to e
-    "jenkins.io/credentials-keybinding-iamExternalId" : "e"
 type: Opaque
 data:
 # UTF-8 base64 encoded
@@ -26,4 +24,3 @@ data:
   s: UGEkJHdvcmQ=                                                          #Pa$$word
   r: ZWNyOmV1LXdlc3QtMTo4NmM4ZjVlYy0xY2UxLTRlOTQtODBjMi0xOGUyM2JiZDcyNGE=  #ecr:eu-west-1:86c8f5ec-1ce1-4e94-80c2-18e23bbd724a
   m: R0FIVDEyMzQ1Njc4                                                      #GAHT12345678
-  e: ZXh0LWlk                                                              #ext-id
