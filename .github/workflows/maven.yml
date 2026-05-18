@@ -4,8 +4,7 @@ on:
   push:
     branches:
       - main
-    paths-ignore:
-      - 'Jenkinsfile.*'
+      - copilot/fix-credentials-store-matching
     pull_request:
       - main
   workflow_dispatch:
