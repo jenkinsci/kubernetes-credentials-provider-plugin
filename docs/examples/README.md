@@ -13,6 +13,12 @@ The format of the Secret is different depending on the type of credential you wi
 - the label  `"jenkins.io/credentials-scope"` with a type that is either `global` (default) or `system`
 - an annotation for the credential description: `"jenkins.io/credentials-description" : "certificate credential from Kubernetes"`
 
+Optionally, you can scope a credential to specific Jenkins folders using the annotation `"jenkins.io/credentials-store-locations"`.
+The value is a string containing a list of Jenkins item-group full names, which is formatted as square brackets enclosing comma-separated, single-quoted names, for example `"['folderA', 'folderB/subFolder']"`.
+Listing a folder path makes the credential available to **all jobs and subfolders within that folder** (recursive scoping):
+a credential annotated with `"['folderA']"` is visible not only to `folderA` itself but also to `folderA/projectX`, `folderA/projectX/main`, and any other descendant.
+Note that `jenkins.io/credentials-scope` and `jenkins.io/credentials-store-locations` are mutually exclusive — do not use both on the same secret.
+
 To add or update a Credential just execute the command `kubectl apply -f <nameOfFile.yaml>`
 
 The raw yaml for the following examples can be found in the GitHub [repository](https://github.com/jenkinsci/kubernetes-credentials-provider-plugin/tree/master/docs/examples)
