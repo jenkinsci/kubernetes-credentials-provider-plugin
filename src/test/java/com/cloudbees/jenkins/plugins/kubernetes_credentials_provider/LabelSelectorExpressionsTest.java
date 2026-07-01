@@ -1,19 +1,18 @@
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
-import static org.junit.Assert.*;
-
 import io.fabric8.kubernetes.api.model.LabelSelector;
 import io.fabric8.kubernetes.api.model.LabelSelectorBuilder;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.Test;
 
-public class LabelSelectorExpressionsTest {
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-    public @Rule ExpectedException thrown = ExpectedException.none();
+class LabelSelectorExpressionsTest {
 
     @Test
-    public void parse() throws LabelSelectorParseException {
+    void parse() throws LabelSelectorParseException {
         LabelSelector selector = LabelSelectorExpressions.parse("mycompany.com/partition  in  (customerA, customerB),environment!=qa,!foo,bar,color=blue,bingo notin (barn),owner in ( john , mary )");
 
         LabelSelector expected = new LabelSelectorBuilder()
@@ -52,16 +51,16 @@ public class LabelSelectorExpressionsTest {
     }
 
     @Test
-    public void parseInvalidOperator() throws LabelSelectorParseException {
-        thrown.expect(LabelSelectorParseException.class);
-        thrown.expectMessage("Unrecognized selector operator 'of' in expression");
-        LabelSelectorExpressions.parse("partition  of  (customerA, customerB)");
+    void parseInvalidOperator() {
+        LabelSelectorParseException exception = assertThrows(LabelSelectorParseException.class, () ->
+                LabelSelectorExpressions.parse("partition  of  (customerA, customerB)"));
+        assertThat(exception.getMessage(), containsString("Unrecognized selector operator 'of' in expression"));
     }
 
     @Test
-    public void parseInvalidExpressionTokenCountTwo() throws LabelSelectorParseException {
-        thrown.expect(LabelSelectorParseException.class);
-        thrown.expectMessage("Invalid selector expression 'partition  in'. Expected 1 or 3 tokens, got 2: [partition, in]");
-        LabelSelectorExpressions.parse("partition  in");
+    void parseInvalidExpressionTokenCountTwo() {
+        LabelSelectorParseException exception = assertThrows(LabelSelectorParseException.class, () ->
+                LabelSelectorExpressions.parse("partition  in"));
+        assertThat(exception.getMessage(), containsString("Invalid selector expression 'partition  in'. Expected 1 or 3 tokens, got 2: [partition, in]"));
     }
 }

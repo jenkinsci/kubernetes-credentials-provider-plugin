@@ -23,179 +23,102 @@
  */
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.convertors;
 
-import java.io.InputStream;
-import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.client.utils.Serialization;
-import org.junit.Test;
-import org.jvnet.hudson.test.Issue;
-
-import com.cloudbees.jenkins.plugins.kubernetes_credentials_provider.CredentialsConvertionException;
 import com.cloudbees.plugins.credentials.CredentialsScope;
 import com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl;
-import static org.hamcrest.CoreMatchers.containsString;
+import io.fabric8.kubernetes.api.model.Secret;
+import org.junit.jupiter.api.Test;
+import org.jvnet.hudson.test.Issue;
+
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.emptyString;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 /**
  * Tests UsernamePasswordCredentialConvertor
  */
-public class UsernamePasswordCredentialsConvertorTest {
+class UsernamePasswordCredentialsConvertorTest extends AbstractConverterTest {
 
+    private final UsernamePasswordCredentialsConvertor convertor = new UsernamePasswordCredentialsConvertor();
 
     @Test
-    public void canConvert() throws Exception {
-        UsernamePasswordCredentialsConvertor convertor = new UsernamePasswordCredentialsConvertor();
+    void canConvert() {
         assertThat("correct registration of valid type", convertor.canConvert("usernamePassword"), is(true));
         assertThat("incorrect type is rejected", convertor.canConvert("something"), is(false));
     }
 
     @Test
-    public void canConvertAValidSecret() throws Exception {
-        UsernamePasswordCredentialsConvertor convertor = new UsernamePasswordCredentialsConvertor();
-
-        try (InputStream is = get("valid.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            assertThat("The Secret was loaded correctly from disk", notNullValue());
-            UsernamePasswordCredentialsImpl credential = convertor.convert(secret);
-            assertThat(credential, notNullValue());
-            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-usernamepass"));
-            assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-            assertThat("credential username is mapped correctly", credential.getUsername(), is("myUsername"));
-            assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("Pa$$word"));
-        }
+    void canConvertAValidSecret() throws Exception {
+        Secret secret = getSecret("valid.yaml");
+        UsernamePasswordCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-usernamepass"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential username is mapped correctly", credential.getUsername(), is("myUsername"));
+        assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("Pa$$word"));
     }
 
     @Test
-    public void canConvertAValidMappedSecret() throws Exception {
-        UsernamePasswordCredentialsConvertor convertor = new UsernamePasswordCredentialsConvertor();
-
-        try (InputStream is = get("validMapped.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            assertThat("The Secret was loaded correctly from disk", notNullValue());
-            UsernamePasswordCredentialsImpl credential = convertor.convert(secret);
-            assertThat(credential, notNullValue());
-            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-usernamepass"));
-            assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-            assertThat("credential username is mapped correctly", credential.getUsername(), is("myUsername"));
-            assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("Pa$$word"));
-        }
+    void canConvertAValidMappedSecret() throws Exception {
+        Secret secret = getSecret("validMapped.yaml");
+        UsernamePasswordCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-usernamepass"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential username is mapped correctly", credential.getUsername(), is("myUsername"));
+        assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("Pa$$word"));
     }
 
     @Issue("JENKINS-54313")
     @Test
-    public void canConvertAValidSecretWithNoDescription() throws Exception {
-        UsernamePasswordCredentialsConvertor convertor = new UsernamePasswordCredentialsConvertor();
-
-        try (InputStream is = get("valid-no-desc.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            assertThat("The Secret was loaded correctly from disk", notNullValue());
-            UsernamePasswordCredentialsImpl credential = convertor.convert(secret);
-            assertThat(credential, notNullValue());
-            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-usernamepass"));
-            assertThat("credential description is mapped correctly", credential.getDescription(), is(emptyString()));
-            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
-            assertThat("credential username is mapped correctly", credential.getUsername(), is("myUsername"));
-            assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("Pa$$word"));
-        }
+    void canConvertAValidSecretWithNoDescription() throws Exception {
+        Secret secret = getSecret("valid-no-desc.yaml");
+        UsernamePasswordCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-usernamepass"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is(emptyString()));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.GLOBAL));
+        assertThat("credential username is mapped correctly", credential.getUsername(), is("myUsername"));
+        assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("Pa$$word"));
     }
 
     @Issue("JENKINS-53105")
     @Test
-    public void canConvertAValidScopedSecret() throws Exception {
-        UsernamePasswordCredentialsConvertor convertor = new UsernamePasswordCredentialsConvertor();
-
-        try (InputStream is = get("validScoped.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            assertThat("The Secret was loaded correctly from disk", notNullValue());
-            UsernamePasswordCredentialsImpl credential = convertor.convert(secret);
-            assertThat(credential, notNullValue());
-            assertThat("credential id is mapped correctly", credential.getId(), is("a-test-usernamepass"));
-            assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
-            assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
-            assertThat("credential username is mapped correctly", credential.getUsername(), is("myUsername"));
-            assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("Pa$$word"));
-        }
+    void canConvertAValidScopedSecret() throws Exception {
+        Secret secret = getSecret("validScoped.yaml");
+        UsernamePasswordCredentialsImpl credential = convertor.convert(secret);
+        assertThat(credential, notNullValue());
+        assertThat("credential id is mapped correctly", credential.getId(), is("a-test-usernamepass"));
+        assertThat("credential description is mapped correctly", credential.getDescription(), is("credentials from Kubernetes"));
+        assertThat("credential scope is mapped correctly", credential.getScope(), is(CredentialsScope.SYSTEM));
+        assertThat("credential username is mapped correctly", credential.getUsername(), is("myUsername"));
+        assertThat("credential password is mapped correctly", credential.getPassword().getPlainText(), is("Pa$$word"));
     }
 
     @Test
-    public void failsToConvertWhenUsernameMissing() throws Exception {
-        UsernamePasswordCredentialsConvertor convertor = new UsernamePasswordCredentialsConvertor();
-        
-        try (InputStream is = get("missingUsername.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("missing the username"));
-        }
-    }
-
-    
-    @Test
-    public void failsToConvertWhenPasswordMissing() throws Exception {
-        UsernamePasswordCredentialsConvertor convertor = new UsernamePasswordCredentialsConvertor();
-
-        try (InputStream is = get("missingPassword.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("missing the password"));
-        }
+    void failsToConvertWhenUsernameMissing() throws Exception {
+        testMissingField(convertor, "username");
     }
 
     @Test
-    public void failsToConvertWhenUsernameCorrupt() throws Exception {
-        UsernamePasswordCredentialsConvertor convertor = new UsernamePasswordCredentialsConvertor();
-        
-        try (InputStream is = get("corruptUsername.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("invalid username"));
-        }
+    void failsToConvertWhenPasswordMissing() throws Exception {
+        testMissingField(convertor, "password");
     }
-
 
     @Test
-    public void failsToConvertWhenPasswordCorrupt() throws Exception {
-        UsernamePasswordCredentialsConvertor convertor = new UsernamePasswordCredentialsConvertor();
-
-        try (InputStream is = get("corruptPassword.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("invalid password"));
-        }
+    void failsToConvertWhenUsernameCorrupt() throws Exception {
+        testCorruptField(convertor, "username");
     }
-
 
     @Test
-    public void failsToConvertWhenDataEmpty() throws Exception {
-        UsernamePasswordCredentialsConvertor convertor = new UsernamePasswordCredentialsConvertor();
-        
-        try (InputStream is = get("void.yaml")) {
-            Secret secret = Serialization.unmarshal(is, Secret.class);
-            convertor.convert(secret);
-            fail("Exception should have been thrown");
-        } catch (CredentialsConvertionException cex) {
-            assertThat(cex.getMessage(), containsString("contains no data"));
-        }
+    void failsToConvertWhenPasswordCorrupt() throws Exception {
+        testCorruptField(convertor, "password");
     }
 
-
-    private static final InputStream get(String resource) {
-        InputStream is = UsernamePasswordCredentialsConvertorTest.class.getResourceAsStream("UsernamePasswordCredentialsConvertorTest/" + resource);
-        if (is == null) {
-            fail("failed to load resource " + resource);
-        }
-        return is;
+    @Test
+    void failsToConvertWhenDataEmpty() throws Exception {
+        testNoData(convertor);
     }
 }

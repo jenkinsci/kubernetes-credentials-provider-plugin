@@ -23,78 +23,78 @@
  */
 package com.cloudbees.jenkins.plugins.kubernetes_credentials_provider;
 
+import com.cloudbees.plugins.credentials.CredentialsScope;
+import io.fabric8.kubernetes.api.model.Secret;
+import io.fabric8.kubernetes.api.model.SecretBuilder;
+import org.junit.jupiter.api.Test;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 
-import com.cloudbees.plugins.credentials.CredentialsScope;
-import io.fabric8.kubernetes.api.model.Secret;
-import io.fabric8.kubernetes.api.model.SecretBuilder;
-import org.junit.Test;
-
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.text.StringContainsInOrder.stringContainsInOrder;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-public class SecretUtilsTest {
+class SecretUtilsTest {
 
     @Test
-    public void base64DecodeToStringWithInvalidBase64() {
+    void base64DecodeToStringWithInvalidBase64() {
         // TODO check that error is logged
         assertThat(SecretUtils.base64DecodeToString("this_is_invalid_base64!"), nullValue());
     }
 
     @Test
-    public void base64DecodeToStringWithInvalidUTF8() {
+    void base64DecodeToStringWithInvalidUTF8() {
         // TODO check that the error is logged
-        String invalidUTF8 = Base64.getEncoder().encodeToString(new byte[] { (byte)0xff, (byte)0xff, (byte)0xff});
+        String invalidUTF8 = Base64.getEncoder().encodeToString(new byte[]{(byte) 0xff, (byte) 0xff, (byte) 0xff});
         assertThat(SecretUtils.base64DecodeToString(invalidUTF8), nullValue());
     }
 
     @Test
-    public void base64DecodeToStringWithValidInput() {
+    void base64DecodeToStringWithValidInput() {
         assertThat(SecretUtils.base64DecodeToString("SGVsbG8sIFdvcmxk"), is("Hello, World"));
     }
-    
+
     @Test
-    public void base64DecodeWithInvalidInput() {
-        // TODO check logging? 
+    void base64DecodeWithInvalidInput() {
+        // TODO check logging?
         assertThat(SecretUtils.base64Decode("%"), nullValue());
     }
 
     @Test
-    public void base64DecodeWithValidInput() {
+    void base64DecodeWithValidInput() {
         byte[] expected = "Hello".getBytes(StandardCharsets.UTF_8);
         assertThat(SecretUtils.base64Decode("SGVsbG8"), is(expected));
     }
 
     @Test
-    public void getCredentialScopeWithValidScopeLabel() throws CredentialsConvertionException {
+    void getCredentialScopeWithValidScopeLabel() throws CredentialsConvertionException {
         Map<String, String> scopeLabel = Collections.singletonMap(SecretUtils.JENKINS_IO_CREDENTIALS_SCOPE_LABEL, "system");
         Secret s = new SecretBuilder().withNewMetadata().withLabels(scopeLabel).endMetadata().build();
         assertThat(SecretUtils.getCredentialScope(s), is(CredentialsScope.SYSTEM));
     }
 
-    @Test(expected = CredentialsConvertionException.class)
-    public void getCredentialScopeWithInvalidScopeThrowsAnException() throws CredentialsConvertionException {
+    @Test
+    void getCredentialScopeWithInvalidScopeThrowsAnException() {
         Map<String, String> invalidScope = Collections.singletonMap(SecretUtils.JENKINS_IO_CREDENTIALS_SCOPE_LABEL, "barf");
         Secret secret = new SecretBuilder().withNewMetadata().withLabels(invalidScope).endMetadata().build();
-        SecretUtils.getCredentialScope(secret);
+        assertThrows(CredentialsConvertionException.class, () -> SecretUtils.getCredentialScope(secret));
     }
 
     @Test
-    public void getCredentialId() {
+    void getCredentialId() {
         final String testName = "a-test-name";
         Secret s = new SecretBuilder().withNewMetadata().withName(testName).endMetadata().build();
         assertThat(SecretUtils.getCredentialId(s), is(testName));
     }
 
     @Test
-    public void getCredentialDescription() {
+    void getCredentialDescription() {
         final String testDescription = "a-test-description";
         Secret s = new SecretBuilder().withNewMetadata().
                 withAnnotations(Collections.singletonMap("jenkins.io/credentials-description", testDescription)).endMetadata().
@@ -103,70 +103,62 @@ public class SecretUtilsTest {
     }
 
     @Test
-    public void getCredentialDescriptionWhenNotPresent() {
+    void getCredentialDescriptionWhenNotPresent() {
         Secret s = new SecretBuilder().withNewMetadata().endMetadata().build();
         assertThat(SecretUtils.getCredentialDescription(s), nullValue());
     }
 
     @Test
-    public void requireNonNullOnNonNullValue() throws Exception {
+    void requireNonNullOnNonNullValue() throws Exception {
         String it = "not null";
         assertThat(SecretUtils.requireNonNull(it, "whatever"), is(it));
     }
 
     @Test
-    public void requireNonNullOnNullValue() {
+    void requireNonNullOnNullValue() {
         String message = "the message";
-        try {
-            SecretUtils.requireNonNull(null, message);
-            fail("no exception thrown");
-        } catch (CredentialsConvertionException cce) {
-            assertThat(cce.getMessage(), is(message));
-        } 
+        CredentialsConvertionException cce = assertThrows(CredentialsConvertionException.class, () -> SecretUtils.requireNonNull(null, message));
+        assertThat(cce.getMessage(), is(message));
     }
 
     @Test
-    public void requireNonNullOnNonNullValueWithMapping() throws Exception {
+    void requireNonNullOnNonNullValueWithMapping() throws Exception {
         String it = "not null";
         assertThat(SecretUtils.requireNonNull(it, "whatever", "custom-mapping"), is(it));
     }
 
     @Test
-    public void requireNonNullOnNullValueWithMapping() {
+    void requireNonNullOnNullValueWithMapping() {
         String message = "the message";
         String mapping = "someMapping";
-        try {
-            SecretUtils.requireNonNull(null, message, mapping);
-            fail("no exception thrown");
-        } catch (CredentialsConvertionException cce) {
-            assertThat(cce.getMessage(), stringContainsInOrder(message, "mapped to", mapping));
-        } 
+        CredentialsConvertionException cce = assertThrows(CredentialsConvertionException.class, () -> SecretUtils.requireNonNull(null, message, mapping));
+        assertThat(cce.getMessage(), stringContainsInOrder(message, "mapped to", mapping));
     }
 
     @Test
-    public void getKeyNameWithNoMapping() {
+    void getKeyNameWithNoMapping() {
         String keyName = "theKey";
         Secret s = new SecretBuilder().withNewMetadata().endMetadata().build();
         assertThat(SecretUtils.getKeyName(s, keyName), is(keyName));
     }
 
     @Test
-    public void getKeyNameWithMapping() {
+    void getKeyNameWithMapping() {
         String keyName = "theKey";
         String mappedKeyName = "mappedKey";
-        Secret s = new SecretBuilder().withNewMetadata().addToAnnotations("jenkins.io/credentials-keybinding-"+keyName, mappedKeyName).endMetadata().build();
+        Secret s = new SecretBuilder().withNewMetadata().addToAnnotations("jenkins.io/credentials-keybinding-" + keyName, mappedKeyName).endMetadata().build();
         assertThat(SecretUtils.getKeyName(s, keyName), is(mappedKeyName));
     }
 
     @Test
-    public void getKeyNameWithIncompleteMapping() {
+    void getKeyNameWithIncompleteMapping() {
         String keyName = "theKey";
-        Secret s = new SecretBuilder().withNewMetadata().addToAnnotations("jenkins.io/credentials-keybinding-"+keyName, "").endMetadata().build();
+        Secret s = new SecretBuilder().withNewMetadata().addToAnnotations("jenkins.io/credentials-keybinding-" + keyName, "").endMetadata().build();
         assertThat(SecretUtils.getKeyName(s, keyName), is(keyName));
     }
 
     @Test
-    public void getNonNullSecretDataWithEntry() throws CredentialsConvertionException {
+    void getNonNullSecretDataWithEntry() throws CredentialsConvertionException {
         String key = "a-key";
         String datum = "some-data";
         Secret s = new SecretBuilder().withNewMetadata().endMetadata().addToData(key, datum).build();
@@ -174,40 +166,32 @@ public class SecretUtilsTest {
     }
 
     @Test
-    public void getNonNullSecretDataWithMappedEntry() throws CredentialsConvertionException {
+    void getNonNullSecretDataWithMappedEntry() throws CredentialsConvertionException {
         String key = "a-key";
         String map = "not-the-key";
         String datum = "some-data";
-        Secret s = new SecretBuilder().withNewMetadata().addToAnnotations("jenkins.io/credentials-keybinding-"+key, map).endMetadata().addToData(map, datum).build();
+        Secret s = new SecretBuilder().withNewMetadata().addToAnnotations("jenkins.io/credentials-keybinding-" + key, map).endMetadata().addToData(map, datum).build();
         assertThat(SecretUtils.getNonNullSecretData(s, key, "ignored"), is(datum));
     }
 
     @Test
-    public void getNonNullSecretDataWithNoData() {
+    void getNonNullSecretDataWithNoData() {
         Secret s = new SecretBuilder().withNewMetadata().endMetadata().build();
-        try {
-            SecretUtils.getNonNullSecretData(s, "some-key", "oops");
-            fail();
-        } catch (CredentialsConvertionException cce) {
-            assertThat(cce.getMessage(), is("oops (mapped to some-key)"));
-        } 
+        CredentialsConvertionException cce = assertThrows(CredentialsConvertionException.class, () -> SecretUtils.getNonNullSecretData(s, "some-key", "oops"));
+        assertThat(cce.getMessage(), is("oops (mapped to some-key)"));
     }
 
     @Test
-    public void getNonNullSecretDataWithNoMappedData() {
+    void getNonNullSecretDataWithNoMappedData() {
         String keyName = "bogus";
         String mappedName = "wibble";
-        Secret s = new SecretBuilder().withNewMetadata().addToAnnotations("jenkins.io/credentials-keybinding-"+keyName, mappedName).endMetadata().build();
-        try {
-            SecretUtils.getNonNullSecretData(s, keyName, "oops");
-            fail();
-        } catch (CredentialsConvertionException cce) {
-            assertThat(cce.getMessage(), stringContainsInOrder("oops", "mapped to", mappedName));
-        } 
+        Secret s = new SecretBuilder().withNewMetadata().addToAnnotations("jenkins.io/credentials-keybinding-" + keyName, mappedName).endMetadata().build();
+        CredentialsConvertionException cce = assertThrows(CredentialsConvertionException.class, () -> SecretUtils.getNonNullSecretData(s, keyName, "oops"));
+        assertThat(cce.getMessage(), stringContainsInOrder("oops", "mapped to", mappedName));
     }
 
     @Test
-    public void getOptionalSecretDataWithEntry() throws CredentialsConvertionException {
+    void getOptionalSecretDataWithEntry() throws CredentialsConvertionException {
         String key = "a-key";
         String datum = "some-data";
         Optional<String> optdatum = Optional.of(datum);
@@ -216,17 +200,17 @@ public class SecretUtilsTest {
     }
 
     @Test
-    public void getOptionalSecretDataWithMappedEntry() throws CredentialsConvertionException {
+    void getOptionalSecretDataWithMappedEntry() throws CredentialsConvertionException {
         String key = "a-key";
         String map = "not-the-key";
         String datum = "some-data";
         Optional<String> optdatum = Optional.of(datum);
-        Secret s = new SecretBuilder().withNewMetadata().addToAnnotations("jenkins.io/credentials-keybinding-"+key, map).endMetadata().addToData(map, datum).build();
+        Secret s = new SecretBuilder().withNewMetadata().addToAnnotations("jenkins.io/credentials-keybinding-" + key, map).endMetadata().addToData(map, datum).build();
         assertThat(SecretUtils.getOptionalSecretData(s, key, "ignored"), is(optdatum));
     }
 
     @Test
-    public void getOptionalSecretDataWithMissingKey() throws CredentialsConvertionException {
+    void getOptionalSecretDataWithMissingKey() throws CredentialsConvertionException {
         String keyexists = "a-key-that-exists";
         String keydoesnotexist = "a-key-that-does-not-exist";
         String datum = "some-data";
@@ -236,7 +220,7 @@ public class SecretUtilsTest {
     }
 
     @Test
-    public void getOptionalSecretDataWithAnnotations() throws CredentialsConvertionException {
+    void getOptionalSecretDataWithAnnotations() throws CredentialsConvertionException {
         String key = "a-key";
         String map = "not-the-key";
         String datum = "some-data";
