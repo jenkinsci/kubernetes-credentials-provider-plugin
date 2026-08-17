@@ -101,7 +101,7 @@
       <dependency>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>openstack-cloud</artifactId>
-        <version>1456.v1c7380506a_ed</version>
+        <version>1465.vd3b_a_103e31fd</version>
       </dependency>
       <dependency>
         <groupId>com.datapipe.jenkins.plugins</groupId>
