@@ -138,6 +138,57 @@ class KubernetesCredentialsProviderTest {
     }
 
     @Test
+    void credentialScopeRecursiveFolderScoping() {
+        Map<String, String> annotations = new HashMap<>();
+        annotations.put(SecretUtils.JENKINS_IO_CREDENTIALS_ITEM_GROUP_ANNOTATION, "['folderA']");
+        Secret scoped = createSecret("scoped", Map.of(), annotations);
+
+        server.expect().withPath("/api/v1/namespaces/test/secrets?labelSelector=jenkins.io%2Fcredentials-type")
+                .andReturn(200, new SecretListBuilder()
+                        .withNewMetadata()
+                        .withResourceVersion("1")
+                        .endMetadata()
+                        .addToItems(scoped)
+                        .build())
+                .once();
+        server.expect().withPath("/api/v1/namespaces/test/secrets?allowWatchBookmarks=true&labelSelector=jenkins.io%2Fcredentials-type&resourceVersion=1&watch=true")
+                .andReturn(200, null).always();
+
+        KubernetesCredentialProvider provider = new MockedKubernetesCredentialProvider();
+        provider.startWatchingForSecrets();
+
+        // exact match: credential scoped to folderA is visible directly inside folderA
+        ItemGroup directFolder = mock(ItemGroup.class);
+        when(directFolder.getFullName()).thenReturn("folderA");
+        List<UsernamePasswordCredentials> credentials = provider.getCredentials(UsernamePasswordCredentials.class, directFolder, ACL.SYSTEM);
+        assertEquals(1, credentials.size(), "credential scoped to folderA should be visible at folderA");
+
+        // sub-folder match: credential scoped to folderA is visible inside folderA/subFolderB
+        ItemGroup subFolder = mock(ItemGroup.class);
+        when(subFolder.getFullName()).thenReturn("folderA/subFolderB");
+        credentials = provider.getCredentials(UsernamePasswordCredentials.class, subFolder, ACL.SYSTEM);
+        assertEquals(1, credentials.size(), "credential scoped to folderA should be visible at folderA/subFolderB");
+
+        // deeper nesting: credential scoped to folderA is visible inside folderA/subFolderB/multibranchProject
+        ItemGroup deepFolder = mock(ItemGroup.class);
+        when(deepFolder.getFullName()).thenReturn("folderA/subFolderB/multibranchProject");
+        credentials = provider.getCredentials(UsernamePasswordCredentials.class, deepFolder, ACL.SYSTEM);
+        assertEquals(1, credentials.size(), "credential scoped to folderA should be visible at folderA/subFolderB/multibranchProject");
+
+        // no accidental prefix match: folderABC must NOT match folderA
+        ItemGroup wrongFolder = mock(ItemGroup.class);
+        when(wrongFolder.getFullName()).thenReturn("folderABC");
+        credentials = provider.getCredentials(UsernamePasswordCredentials.class, wrongFolder, ACL.SYSTEM);
+        assertEquals(0, credentials.size(), "credential scoped to folderA must NOT be visible at folderABC");
+
+        // root must NOT match a non-empty scope annotation
+        ItemGroup rootGroup = mock(ItemGroup.class);
+        when(rootGroup.getFullName()).thenReturn("");
+        credentials = provider.getCredentials(UsernamePasswordCredentials.class, rootGroup, ACL.SYSTEM);
+        assertEquals(0, credentials.size(), "credential scoped to folderA must NOT be visible at root");
+    }
+
+    @Test
     void startWatchingForSecrets() {
         Secret s1 = createSecret("s1", (CredentialsScope) null);
         Secret s2 = createSecret("s2", (CredentialsScope) null);
