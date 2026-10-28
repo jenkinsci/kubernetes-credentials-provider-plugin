@@ -210,7 +210,7 @@ public class KubernetesCredentialProvider extends CredentialsProvider implements
                     String itemGroupPath = itemGroup.getFullName();
                     Collection<String> itemGroups = credential.getItemGroups();
                     LOG.log(Level.FINEST, "getCredentials checking if itemGroupPath {0} is in itemGroups of {1} ({2})", new Object[] { itemGroupPath, credential.getId(), itemGroups });
-                    if (!itemGroups.isEmpty() && itemGroups.stream().noneMatch(itemGroupPath::equals)) {
+                    if (!itemGroups.isEmpty() && itemGroups.stream().noneMatch(ig -> itemGroupPath.equals(ig) || itemGroupPath.startsWith(ig + "/"))) {
                         LOG.log(Level.FINEST, "getCredentials itemGroupPath not found in: {0}", itemGroups);
                         continue;
                     }
