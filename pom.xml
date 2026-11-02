@@ -47,7 +47,7 @@
     <changelist>999999-SNAPSHOT</changelist>
     <jenkins.baseline>2.504</jenkins.baseline>
     <jenkins.version>${jenkins.baseline}.3</jenkins.version>
-    <junit5.version>5.13.2</junit5.version>
+    <junit5.version>6.1.3</junit5.version>
     <hpi.strictBundledArtifacts>true</hpi.strictBundledArtifacts>
     <ban-junit4-imports.skip>false</ban-junit4-imports.skip>
   </properties>
